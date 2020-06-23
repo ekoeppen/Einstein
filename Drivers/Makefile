@@ -243,9 +243,9 @@ EinsteinStartupDriver.pkg	: EinsteinStartupDriver.bin
 		-protocol $(<F) -autoload
 	${SetFile} -t "pkg " -c "pkgX" $@
 
-EinsteinSerialDriver.bin :		TSerialChipVoyager.impl.o \
-								TSerialChipVoyager.o \
-								TSerialChipVoyagerPrims.o
+EinsteinSerialDriver.bin :		TSerialChipEinstein.impl.o \
+								TSerialChipEinstein.o \
+								TSerialChipEinsteinPrims.o
 	${ARMLink} ${LinkOptions} ${Libraries} \
 		$(^F) -o $(@F)
 

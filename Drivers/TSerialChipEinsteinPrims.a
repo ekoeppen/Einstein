@@ -1,0 +1,89 @@
+;  ==============================
+;  File:			TSerialChipEinsteinPrims.a
+;  Project:			Einstein
+;
+;  Copyright 2003-2013 by Paul Guyot (pguyot@kallisys.net).
+;
+;  This program is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  This program is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License along
+;  with this program; if not, write to the Free Software Foundation, Inc.,
+;  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+;  ==============================
+;  $Id$
+;  ==============================
+
+	MACRO
+	NATIVE_PRIM	$id, $symbol
+	AREA		$symbol, CODE, READONLY
+	EXPORT		$symbol
+	stmdb		sp!, {lr}
+	ldr			lr, id_for_$symbol
+	mcr			p10, 0, lr, c0, c0
+	ldmia		sp!, {pc}
+id_for_$symbol
+	DCD			$id
+	MEND
+
+;	NATIVE_PRIM	0x00000631,	New__19TSerialChipEinsteinFv
+;	NATIVE_PRIM	0x00000632,	Delete__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000633,	InstallChipHandler__19TSerialChipEinsteinFPvP14SCCChannelInts
+	NATIVE_PRIM	0x00000634,	RemoveChipHandler__19TSerialChipEinsteinFPv
+	NATIVE_PRIM	0x00000635,	PutByte__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000636,	ResetTxBEmpty__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000637,	GetByte__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000638,	TxBufEmpty__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000639,	RxBufFull__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000063A,	GetRxErrorStatus__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000063B,	GetSerialStatus__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000063C,	ResetSerialStatus__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000063D,	SetSerialOutputs__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x0000063E,	ClearSerialOutputs__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x0000063F,	GetSerialOutputs__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000640,	PowerOff__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000641,	PowerOn__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000642,	PowerIsOn__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000643,	SetInterruptEnable__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000644,	Reset__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000645,	SetBreak__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000646,	SetSpeed__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x00000647,	SetIOParms__19TSerialChipEinsteinFP17TCMOSerialIOParms
+	NATIVE_PRIM	0x00000648,	Reconfigure__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000649,	Init__19TSerialChipEinsteinFP11TCardSocketP12TCardHandlerPUc
+	NATIVE_PRIM	0x0000064A,	CardRemoved__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000064B,	GetFeatures__19TSerialChipEinsteinFv
+;	NATIVE_PRIM	0x0000064C,	InitByOption__19TSerialChipEinsteinFP7TOption
+	NATIVE_PRIM	0x0000064D,	ProcessOption__19TSerialChipEinsteinFP7TOption
+	NATIVE_PRIM	0x0000064E,	SetSerialMode__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x0000064F,	SysEventNotify__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x00000650,	SetTxDTransceiverEnable__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000651,	GetByteAndStatus__19TSerialChipEinsteinFPUc
+	NATIVE_PRIM	0x00000652,	SetIntSourceEnable__19TSerialChipEinsteinFUlUc
+	NATIVE_PRIM	0x00000653,	AllSent__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000654,	ConfigureForOutput__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000655,	InitTxDMA__19TSerialChipEinsteinFP10TCircleBufPFPv_v
+	NATIVE_PRIM	0x00000656,	InitRxDMA__19TSerialChipEinsteinFP10TCircleBufUlPFPvUl_v
+	NATIVE_PRIM	0x00000657,	TxDMAControl__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000658,	RxDMAControl__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x00000659,	SetSDLCAddress__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x0000065A,	ReEnableReceiver__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x0000065B,	LinkIsFree__19TSerialChipEinsteinFUc
+	NATIVE_PRIM	0x0000065C,	SendControlPacket__19TSerialChipEinsteinFUcN21
+	NATIVE_PRIM	0x0000065D,	WaitForPacket__19TSerialChipEinsteinFUl
+	NATIVE_PRIM	0x0000065E,	WaitForAllSent__19TSerialChipEinsteinFv
+
+	END
+
+; ==============================================================
+; Computers are unreliable, but humans are even more unreliable.
+; Any system which depends on human reliability is unreliable.
+;                 -- Gilb
+; ==============================================================
