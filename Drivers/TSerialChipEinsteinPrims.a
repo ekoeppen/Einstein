@@ -33,8 +33,8 @@ id_for_$symbol
 	DCD			$id
 	MEND
 
-;	NATIVE_PRIM	0x00000631,	New__19TSerialChipEinsteinFv
-;	NATIVE_PRIM	0x00000632,	Delete__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000631,	New__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x00000632,	Delete__19TSerialChipEinsteinFv
 	NATIVE_PRIM	0x00000633,	InstallChipHandler__19TSerialChipEinsteinFPvP14SCCChannelInts
 	NATIVE_PRIM	0x00000634,	RemoveChipHandler__19TSerialChipEinsteinFPv
 	NATIVE_PRIM	0x00000635,	PutByte__19TSerialChipEinsteinFUc
@@ -60,7 +60,7 @@ id_for_$symbol
 	NATIVE_PRIM	0x00000649,	Init__19TSerialChipEinsteinFP11TCardSocketP12TCardHandlerPUc
 	NATIVE_PRIM	0x0000064A,	CardRemoved__19TSerialChipEinsteinFv
 	NATIVE_PRIM	0x0000064B,	GetFeatures__19TSerialChipEinsteinFv
-;	NATIVE_PRIM	0x0000064C,	InitByOption__19TSerialChipEinsteinFP7TOption
+	NATIVE_PRIM	0x0000064C,	InitByOption__19TSerialChipEinsteinFP7TOption
 	NATIVE_PRIM	0x0000064D,	ProcessOption__19TSerialChipEinsteinFP7TOption
 	NATIVE_PRIM	0x0000064E,	SetSerialMode__19TSerialChipEinsteinFUl
 	NATIVE_PRIM	0x0000064F,	SysEventNotify__19TSerialChipEinsteinFUl
