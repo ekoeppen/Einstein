@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #if !TARGET_OS_WIN32
 	#include <unistd.h>
@@ -115,6 +116,22 @@ TNativePrimitives::~TNativePrimitives( void )
 }
 
 // -------------------------------------------------------------------------- //
+//  * FLogLine( KUInt32 inDriver )
+// -------------------------------------------------------------------------- //
+void
+TNativePrimitives::FLogLine( KUInt32 inDriver, const char* inFormat, ... )
+{
+	if (mLog && (inDriver & mLogMask))
+	{
+		va_list argList;
+
+		va_start(argList, inFormat);
+		mLog->FLogLine (inFormat, argList);
+		va_end(argList);
+	}
+}
+
+// -------------------------------------------------------------------------- //
 //  * SetEmulator( TEmulator* )
 // -------------------------------------------------------------------------- //
 void
@@ -150,19 +167,19 @@ void
 TNativePrimitives::ExecuteNative( KUInt32 inInstruction )
 {
 	static KUInt16 n[0x1000] = { 0 };
-	
+
 	if (inInstruction & 0x80000000)
 	{
 		// If the high bit is set, this instruction is actually a patch, not
 		// a real ARM instruction.  The lower 31 bits are an enum value
 		// identifying a virtualized call. These enums are defined in
 		// TVirtualizedCallsPatches.h
-		
+
 		mVirtualizedCalls->Execute(inInstruction &~ 0x80000000);
 	} else {
 		// This block updates the progress bar overlay as the
 		// virtual Newton is going through its early boot phases.
-		
+
 		static bool traceProgress = true;
 		if (traceProgress) {
 			int nn = n[inInstruction&0xfff]++;
@@ -246,69 +263,66 @@ TNativePrimitives::ExecuteNative( KUInt32 inInstruction )
 				}
 			}
 		}
-		
+
 		// Now execute the native implementation of the coprocessor
-		
+
 		switch (inInstruction >> 8)
 		{
 			case 0x000000:
 				ExecuteFlashDriverNative( inInstruction );
 				break;
-				
+
 			case 0x000001:
 				ExecutePlatformDriverNative( inInstruction );
 				break;
-				
+
 			case 0x000002:
 				ExecuteSoundDriverNative( inInstruction );
 				break;
-				
+
 			case 0x000003:
 				ExecuteBatteryDriverNative( inInstruction );
 				break;
-				
+
 			case 0x000004:
 				ExecuteScreenDriverNative( inInstruction );
 				break;
-	
+
 			case 0x000005:
 				ExecuteTabletDriverNative( inInstruction );
 				break;
-	
+
 			case 0x000006:
 				ExecuteSerialDriverNative( inInstruction );
 				break;
-	
+
 			case 0x000007:
 				ExecuteInTranslatorNative( inInstruction );
 				break;
-	
+
 			case 0x000008:
 				ExecuteOutTranslatorNative( inInstruction );
 				break;
-	
+
 			case 0x000009:
 				ExecuteHostCallNative( inInstruction );
 				break;
-				
+
 			case 0x00000A:
 				ExecuteNetworkManagerNative( inInstruction );
 				break;
-		
-#if TARGET_OS_MAC	
+
+#if TARGET_OS_MAC
 			case 0x00000B:
 				ExecuteHostiOSNativeiOS( inInstruction );
 				break;
 #endif
 
 			default:
-				if (mLog)
-				{
-					mLog->FLogLine(
+				FLogLine( 0xcafebabe,
 						"Unimplemented native primitive %.8X (pc=%.8X)",
 						(unsigned int) inInstruction,
 						(unsigned int) mProcessor->GetRegister(15) );
-				}					
 		}
 	}
 }
@@ -330,18 +344,15 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 			KUInt32 mask = mProcessor->GetRegister( 2 );
 			KUInt32 theIDStructAddr = mProcessor->GetRegister( 3 );
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 0),
 					"TEinsteinFlashDriver::Identify(%.8X, %.8X, %.8X)",
 					(unsigned int) chipAddr,
 					(unsigned int) mask,
 					(unsigned int) theIDStructAddr );
-			}
 #endif
 			// For 4MB, just return 1 for 0x34000000 only.
 //			if ((chipAddr == 0x34000000)
-//				&&	
+//				&&
 			if ((mask == 0xFF000000)
 					|| (mask == 0x00FF0000)
 					|| (mask == 0x0000FF00)
@@ -365,60 +376,42 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 
 		case 0x02:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::CleanUp" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::CleanUp" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x03:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::Init" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::Init" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x04:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::InitializeDriverData" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::InitializeDriverData" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x05:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::CleanUpDriverData" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::CleanUpDriverData" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x06:
 #if debugFlash > 1
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::StartReadingArray" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::StartReadingArray" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x07:
 #if debugFlash > 1
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::DoneReadingArray" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::DoneReadingArray" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
@@ -432,7 +425,7 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 				// Very ugly way to determine that we do 32 bits.
 				// (btw, we only have 16 bits accesses from the OS, but
 				// 8 bits may be possible as well).
-				
+
 				// PLATFORM SPECIFIC HACK
 				//					16 bits		32 bits
 				// MP2100D			0001E3C8	0001E3E0
@@ -443,16 +436,13 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 					|| (virtualTable == 0x0001E3E0)
 					|| (virtualTable == 0x0001E180);
 #if debugFlash
-				if (mLog && (mLogMask & (1 << 0x0)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 0),
 						"TEinsteinFlashDriver::Write(data=%.8X, mask=%.8X, addr=%.8X, VT=%.8X, %s)",
 						(unsigned int) mProcessor->GetRegister( 1 ),
 						(unsigned int) mProcessor->GetRegister( 2 ),
 						(unsigned int) mProcessor->GetRegister( 3 ),
 						(unsigned int) virtualTable,
 						is32bits ? "32bits" : "16bits" );
-				}
 #endif
 				bool theResult;
 				if (is32bits)
@@ -485,7 +475,7 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 				// Very ugly way to determine that we do 32 bits.
 				// (btw, we only have 16 bits accesses from the OS, but
 				// 8 bits may be possible as well).
-				
+
 				// PLATFORM SPECIFIC HACK
 				//					16 bits		32 bits
 				// MP2100D			0001E3C8	0001E3E0
@@ -497,13 +487,10 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 					|| (virtualTable == 0x0001E180);
 
 #if debugFlash
-				if (mLog && (mLogMask & (1 << 0x0)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 0),
 						"TEinsteinFlashDriver::StartErase(FR, %.8X, %s)",
 						(unsigned int) mProcessor->GetRegister( 2 ),
 						is32bits ? "32bits" : "16bits" );
-				}
 #endif
 				bool theResult;
 				if (is32bits)
@@ -516,7 +503,7 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 						(unsigned int) mProcessor->GetRegister( 2 ),
 						0x10000);
 				}
-				
+
 				if (theResult)
 				{
 					mProcessor->SetRegister( 0,
@@ -529,20 +516,14 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 
 		case 0x0A:
 #if debugFlash > 1
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::ResetBlockStatus" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::ResetBlockStatus" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0B:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::IsEraseComplete" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::IsEraseComplete" );
 #endif
 			// Erase is always complete with no error :D
 			mProcessor->SetRegister( 0, 1 );
@@ -553,26 +534,20 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 
 		case 0x0C:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 0),
 					"TEinsteinFlashDriver::LockBlock(FR, %.8X)",
 					(unsigned int) mProcessor->GetRegister( 2 ) );
-			}
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0D:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 0),
 					"TEinsteinFlashDriver::BeginWrite(%.8X, %.8X, %.8X)",
 					(unsigned int) mProcessor->GetRegister( 1 ),
 					(unsigned int) mProcessor->GetRegister( 2 ),
 					(unsigned int) mProcessor->GetRegister( 3 ) );
-			}
 #endif
 			if (mMemory->TranslateAndCheckFlashAddress( mProcessor->GetRegister( 2 ), nil ))
 			{
@@ -585,10 +560,7 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 
 		case 0x0E:
 #if debugFlash
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->LogLine( "TEinsteinFlashDriver::ReportWriteResult" );
-			}
+			FLogLine( (1 << 0), "TEinsteinFlashDriver::ReportWriteResult" );
 #endif
 			mProcessor->SetRegister( 0, 0 );
 			break;
@@ -598,15 +570,12 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 				KUInt32 startOfBlock;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, startOfBlock);
 #if debugFlash
-				if (mLog && (mLogMask & (1 << 0x0)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 0),
 						"TEinsteinFlashDriver::DoWrite(data=%.8X, mask=%.8X, addr=%.8X, Start=%.8X)",
 						(unsigned int) mProcessor->GetRegister( 1 ),
 						(unsigned int) mProcessor->GetRegister( 2 ),
 						(unsigned int) mProcessor->GetRegister( 3 ),
 						(unsigned int) startOfBlock );
-				}
 #endif
 				mProcessor->SetRegister( 0, 0 );
 			}
@@ -615,18 +584,15 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 		case 0x10:
 			{
 #if debugFlash
-				if (mLog && (mLogMask & (1 << 0x0)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 0),
 						"TEinsteinFlashDriver::DoErase(start=%.8X, size=%.8X)",
 						(unsigned int) mProcessor->GetRegister( 1 ),
 						(unsigned int) mProcessor->GetRegister( 2 ) );
-				}
 #endif
 				bool theResult = mMemory->EraseFlash(
 						(unsigned int) mProcessor->GetRegister( 1 ),
 						(unsigned int) mProcessor->GetRegister( 2 ));
-				
+
 				if (theResult)
 				{
 					mProcessor->SetRegister( 0,
@@ -638,13 +604,10 @@ TNativePrimitives::ExecuteFlashDriverNative( KUInt32 inInstruction )
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x0)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 0),
 					"Unknown flash driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}					
 	}
 }
 
@@ -657,85 +620,55 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::New" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::New" );
 			break;
-			
+
 		case 0x02:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::Delete" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::Delete" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::Init" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::Init" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::BacklightTrigger" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::BacklightTrigger" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::RegisterPowerSwitchInterrupt" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::RegisterPowerSwitchInterrupt" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::EnableSysPowerInterrupt" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::EnableSysPowerInterrupt" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x07:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::InterruptHandler" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::InterruptHandler" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::TimerInterruptHandler" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::TimerInterruptHandler" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x09:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::ResetZAPStoreCheck" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::ResetZAPStoreCheck" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
-			
+
 		case 0x0A:
 			{
 				KUInt32 theSubsystem = mProcessor->GetRegister(1);
-				if (mLog && (mLogMask & (1 << 0x1)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 1),
 						"TMainPlatformDriver::PowerOnSubsystem( %.8X )",
 						(unsigned int) theSubsystem );
-				}
 				if (theSubsystem == 0x1D)
 				{
 					mMemory->PowerOnFlash();
@@ -744,16 +677,13 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 				mProcessor->SetRegister( 0, 0 );
 			}
 			break;
-			
+
 		case 0x0B:
 			{
 				KUInt32 theSubsystem = mProcessor->GetRegister(1);
-				if (mLog && (mLogMask & (1 << 0x1)))
-				{
-					mLog->FLogLine(
+				FLogLine( (1 << 1),
 						"TMainPlatformDriver::PowerOffSubsystem( %.8X )",
 						(unsigned int) theSubsystem );
-				}
 				if (theSubsystem == 0x1D)
 				{
 					mMemory->PowerOffFlash();
@@ -763,28 +693,19 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0C:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::PowerOffAllSubsystems" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::PowerOffAllSubsystems" );
 			mMemory->PowerOffFlash();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0D:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-//				mLog->LogLine( "TMainPlatformDriver::PauseSystem" );
-			}
+			//FLogLine( (1 << 1), "TMainPlatformDriver::PauseSystem" );
 			mEmulator->PauseSystem();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0E:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::PowerOffSystem" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::PowerOffSystem" );
 			mMemory->PowerOffFlash();
 			mPlatformManager->PowerOff();
 			if (mQuit)
@@ -797,32 +718,23 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0F:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::PowerOnSystem" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::PowerOnSystem" );
 			mMemory->PowerOnFlash();
 			mPlatformManager->PowerOn();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x10:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"TMainPlatformDriver::TranslatePowerEvent( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x11:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"TMainPlatformDriver::GetPCMCIAPowerSpec( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 
 			if (mProcessor->GetRegister(1) == 0)
 			{
@@ -841,12 +753,9 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x12:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"TMainPlatformDriver::PowerOnDeviceCheck( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			{
 				static int firstPause = 1;
 				if (firstPause) {
@@ -866,23 +775,17 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x13:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"TMainPlatformDriver::SetSubsystemPower( %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x14:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"TMainPlatformDriver::GetSubsystemPower( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			(void) mMemory->Write(
 				(unsigned int) mProcessor->GetRegister(2),
 				(unsigned int) 0 );
@@ -901,18 +804,12 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x16:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::Hop!" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::Hop!" );
 			mEmulator->BreakInMonitor();
 			break;
 
 		case 0x17:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->LogLine( "TMainPlatformDriver::FillGestaltEmulatorInfo" );
-			}
+			FLogLine( (1 << 1), "TMainPlatformDriver::FillGestaltEmulatorInfo" );
 			(void) mMemory->Write(
 				(unsigned int) mProcessor->GetRegister(1),
 				(unsigned int) kUP2Version );
@@ -935,7 +832,7 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 				char theLine[74];
 				KUInt32 amount = sizeof(theLine);
 				(void) mMemory->FastReadString(theAddress, &amount, theLine);
-				mLog->LogLine( theLine );
+				FLogLine( (1 << 1), theLine );
 			} else {
 				KUInt32 theAddress = mProcessor->GetRegister( 1 );
 				char theLine[512];
@@ -1010,18 +907,12 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x21:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine("TMainPlatformDriver::OpenEinsteinMenu()");
-			}
+			FLogLine( (1 << 1),"TMainPlatformDriver::OpenEinsteinMenu()");
 			mPlatformManager->OpenEinsteinMenu();
 			break;
 
 		case 0x22:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine("TMainPlatformDriver::NewtonScriptCall()");
-			}
+			FLogLine( (1 << 1),"TMainPlatformDriver::NewtonScriptCall()");
 			{
 				using namespace TNewt;
 				NewtRef ret = mPlatformManager->NewtonScriptCall(
@@ -1034,13 +925,10 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x1)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 1),
 					"Unknown platform driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
@@ -1055,35 +943,27 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 	{
 			// No longer native.
 //		case 0x01:
-//			if (mLog && (mLogMask & (1 << 0x2)))
 //			{
-//				mLog->LogLine( "PMainSoundDriver::New" );
+//FLogLine( (1 << 2), "PMainSoundDriver::New" );
 //			}
 //			break;
 
 			// No longer native.
 //		case 0x02:
-//			if (mLog && (mLogMask & (1 << 0x2)))
 //			{
-//				mLog->LogLine( "PMainSoundDriver::Delete" );
+//FLogLine( (1 << 2), "PMainSoundDriver::Delete" );
 //			}
 //			mProcessor->SetRegister( 0, 0 );
 //			break;
 
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::SetSoundHardwareInfo" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::SetSoundHardwareInfo" );
 			mProcessor->SetRegister( 0, (KUInt32) -30009 );
 			break;
 
 		case 0x04:
 //			mEmulator->BreakInMonitor();
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::GetSoundHardwareInfo" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::GetSoundHardwareInfo" );
 			{
 				KUInt32 theInfoStructAddr = mProcessor->GetRegister( 1 );
 				(void) mMemory->Write(theInfoStructAddr + 0x00, 0x00000001);	// unknown
@@ -1102,16 +982,13 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 				// mEmulator->BreakInMonitor();
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
-				if (mLog && (mLogMask & (1 << 0x2)))
-				{
-					mLog->LogLine( "PMainSoundDriver::SetOutputBuffers(" );
-					mLog->FLogLine(
+				FLogLine( (1 << 2), "PMainSoundDriver::SetOutputBuffers(" );
+				FLogLine( (1 << 2),
 						"  %.8X, %.8X, %.8X, %.8X )",
 						(unsigned int) mProcessor->GetRegister(1),
 						(unsigned int) mProcessor->GetRegister(2),
 						(unsigned int) mProcessor->GetRegister(3),
 						(unsigned int) fourthParam );
-				}
 				mSoundOutputBuffer1Addr = mProcessor->GetRegister(1);
 //				mSoundOutputBuffer1Size = mProcessor->GetRegister(2);
 				mSoundOutputBuffer2Addr = mProcessor->GetRegister(3);
@@ -1121,13 +998,12 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x2)))
 			{
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
 
-				mLog->LogLine( "PMainSoundDriver::SetInputBuffers(" );
-				mLog->FLogLine(
+				FLogLine( (1 << 2), "PMainSoundDriver::SetInputBuffers(" );
+				FLogLine( (1 << 2),
 					"  %.8X, %.8X, %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2),
@@ -1138,13 +1014,10 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x07:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::ScheduleOutputBuffer( %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2) );
-			}
 			{
 				KUInt32 buffer;
 				if (mProcessor->GetRegister(1))
@@ -1160,158 +1033,104 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::ScheduleInputBuffer( %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x09:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::PowerOutputOn( %i )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0A:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::PowerOutputOff" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::PowerOutputOff" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0B:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::PowerInputOn" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::PowerInputOn" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0C:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::PowerInputOff" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::PowerInputOff" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0D:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::StartOutput" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::StartOutput" );
 			mSoundManager->StartOutput();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0E:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::StartInput" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::StartInput" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0F:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::StopOutput" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::StopOutput" );
 			mSoundManager->StopOutput();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x10:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::StopInput" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::StopInput" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x11:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::OutputIsEnabled" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::OutputIsEnabled" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x12:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::InputIsEnabled" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::InputIsEnabled" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x13:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::OutputIsRunning" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::OutputIsRunning" );
 			mProcessor->SetRegister( 0, mSoundManager->OutputIsRunning() );
 			break;
 
 		case 0x14:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::InputIsRunning" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::InputIsRunning" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x15:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::CurrentOutputPtr" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::CurrentOutputPtr" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x16:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::CurrentInputPtr" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::CurrentInputPtr" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x17:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::OutputVolume( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			mSoundManager->OutputVolume( mProcessor->GetRegister(1) );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x18:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::OutputVolume" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::OutputVolume" );
 			mProcessor->SetRegister( 0, mSoundManager->OutputVolume() );
 			break;
 
 		case 0x19:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::InputVolume( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			{
 				KUInt32 param = mProcessor->GetRegister(1);
 				if (param > 0xFF)
@@ -1324,53 +1143,35 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x1A:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::InputVolume" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::InputVolume" );
 			mProcessor->SetRegister( 0, mInputVolume );
 			break;
 
 		case 0x1B:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::EnableExtSoundSource" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::EnableExtSoundSource" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x1C:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::DisableExtSoundSource" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::DisableExtSoundSource" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x1D:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::OutputIntHandler" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::OutputIntHandler" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x1E:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->LogLine( "PMainSoundDriver::InputIntHandler" );
-			}
+			FLogLine( (1 << 2), "PMainSoundDriver::InputIntHandler" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x1F:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"PMainSoundDriver::NativeSetInterruptMask( %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2) );
-			}
 			mSoundManager->SetInterruptMask(
 				mProcessor->GetRegister(1),
 				mProcessor->GetRegister(2));
@@ -1378,13 +1179,10 @@ TNativePrimitives::ExecuteSoundDriverNative( KUInt32 inInstruction )
 
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x2)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 2),
 					"Unknown sound driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
@@ -1397,49 +1195,31 @@ TNativePrimitives::ExecuteBatteryDriverNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::New" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::New" );
 			break;
 
 		case 0x02:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::Delete" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::Delete" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::Init" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::Init" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::WakeUp" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::WakeUp" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::ShutDown" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::ShutDown" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::Count" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::Count" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
@@ -1456,10 +1236,7 @@ TNativePrimitives::ExecuteBatteryDriverNative( KUInt32 inInstruction )
 				outputCapacity = [[(NSDictionary*)battery objectForKey:@kIOPSCurrentCapacityKey] doubleValue];
 			 }
 			 */
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::Status" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::Status" );
 			{
 				KUInt32 theInfoStructAddr = mProcessor->GetRegister( 2 );
 				(void) mMemory->Write(theInfoStructAddr + 0x00, 0x00000003);	// mBatteryType
@@ -1480,10 +1257,7 @@ TNativePrimitives::ExecuteBatteryDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::RawStatus" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::RawStatus" );
 			{
 				KUInt32 theInfoStructAddr = mProcessor->GetRegister( 2 );
 				(void) mMemory->Write(theInfoStructAddr + 0x00, 0x00000003);	// mBatteryType
@@ -1504,45 +1278,30 @@ TNativePrimitives::ExecuteBatteryDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x09:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::StartSleepCharge" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::StartSleepCharge" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0A:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::SetType" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::SetType" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0B:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::ReadADCVoltage" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::ReadADCVoltage" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0C:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->LogLine( "PMainBatteryDriver::ConvertVoltage" );
-			}
+			FLogLine( (1 << 3), "PMainBatteryDriver::ConvertVoltage" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x3)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 3),
 					"Unknown battery driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
@@ -1555,26 +1314,19 @@ TNativePrimitives::ExecuteScreenDriverNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::Delete" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::Delete" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 //		case 0x02:
-//			if (mLog && (mLogMask & (1 << 0x4)))
 //			{
-//				mLog->LogLine( "TMainDisplayDriver::ScreenSetup" );
+//FLogLine( (1 << 4), "TMainDisplayDriver::ScreenSetup" );
 //			}
 //			mProcessor->SetRegister( 0, 0 );
 //			break;
 
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::GetScreenInfo" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::GetScreenInfo" );
 			{
 				KUInt32 theInfoStructAddr = mProcessor->GetRegister( 1 );
 				(void) mMemory->Write(theInfoStructAddr + 0x00, mScreenManager->GetScreenHeight() );
@@ -1589,27 +1341,18 @@ TNativePrimitives::ExecuteScreenDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::PowerInit" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::PowerInit" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::PowerOn" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::PowerOn" );
 			mScreenManager->PowerOnScreen();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::PowerOff" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::PowerOff" );
 			mScreenManager->PowerOffScreen();
 			mProcessor->SetRegister( 0, 0 );
 			break;
@@ -1650,12 +1393,9 @@ TNativePrimitives::ExecuteScreenDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 4),
 					"TMainDisplayDriver::GetFeature( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
-			}
 			{
 				KUInt32 theFeature = (unsigned int) mProcessor->GetRegister(1);
 				if (theFeature == 0x00000000) {
@@ -1678,13 +1418,10 @@ TNativePrimitives::ExecuteScreenDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x09:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 4),
 					"TMainDisplayDriver::SetFeature( %.8X, %.8X )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2) );
-			}
 			{
 				KUInt32 theFeature = (unsigned int) mProcessor->GetRegister(1);
 				KUInt32 theValue = (unsigned int) mProcessor->GetRegister(2);
@@ -1700,49 +1437,34 @@ TNativePrimitives::ExecuteScreenDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0A:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::AutoAdjustFeatures" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::AutoAdjustFeatures" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0B:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 4),
 					"TMainDisplayDriver::DoubleBlit( PM=%.8X, PM=%.8X, R=%.8X, R, long )",
 					(unsigned int) mProcessor->GetRegister(1),
 					(unsigned int) mProcessor->GetRegister(2),
 					(unsigned int) mProcessor->GetRegister(3) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0C:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::EnterIdleMode" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::EnterIdleMode" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0D:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->LogLine( "TMainDisplayDriver::ExitIdleMode" );
-			}
+			FLogLine( (1 << 4), "TMainDisplayDriver::ExitIdleMode" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x4)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 4),
 					"Unknown screen driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
@@ -1756,25 +1478,16 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::New" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::New" );
 			break;
 
 		case 0x02:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::Delete" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::Delete" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::Init" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::Init" );
 			mTabletCalibration.fUnknown_00 = 0xFFFFDFA5;
 			mTabletCalibration.fUnknown_04 = 0x000015EC;
 			mTabletCalibration.fUnknown_08 = 0x01F5F6B0;
@@ -1784,56 +1497,38 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::WakeUp" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::WakeUp" );
 			mScreenManager->WakeUpTablet();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::ShutDown" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::ShutDown" );
 			mScreenManager->ShutDownTablet();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::TabletIdle" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::TabletIdle" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x07:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::GetSampleRate" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::GetSampleRate" );
 			mProcessor->SetRegister( 0, mScreenManager->GetTabletSampleRate() );
 			break;
 
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 5),
 					"TMainTabletDriver::SetSampleRate( %.8X )",
 					(unsigned int) mProcessor->GetRegister(1) );
 				// mEmulator->BreakInMonitor();
-			}
 			mScreenManager->SetTabletSampleRate( mProcessor->GetRegister(1) );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x09:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::GetTabletCalibration" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::GetTabletCalibration" );
 			{
 				KUInt32 tabletCalibrationAddy = mProcessor->GetRegister(1);
 				(void) mMemory->Write(
@@ -1855,10 +1550,7 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0A:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::SetTabletCalibration" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::SetTabletCalibration" );
 			{
 				KUInt32 tabletCalibrationAddy = mProcessor->GetRegister(1);
 				(void) mMemory->Read(
@@ -1880,19 +1572,13 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0B:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::SetDoingCalibration" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::SetDoingCalibration" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0C:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::GetTabletResolution" );
-				// mEmulator->BreakInMonitor();
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::GetTabletResolution" );
+			// mEmulator->BreakInMonitor();
 			(void) mMemory->Write(
 				mProcessor->GetRegister(1),
 				0x3200000);
@@ -1902,86 +1588,56 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 			break;
 
 		case 0x0D:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::TabSetOrientation" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::TabSetOrientation" );
 			mScreenManager->SetTabletOrientation(
 				(TScreenManager::EOrientation) mProcessor->GetRegister(1) );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x0E:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-//				mLog->LogLine( "TMainTabletDriver::GetTabletState" );
-			}
+			//FLogLine( (1 << 5), "TMainTabletDriver::GetTabletState" );
 			mProcessor->SetRegister( 0, (KUInt32) mScreenManager->GetTabletState() );
 			break;
 
 		case 0x0F:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::GetFingerInputState" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::GetFingerInputState" );
 			mProcessor->SetRegister( 0, (KUInt32) -56008 );
 			break;
 
 		case 0x10:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::SetFingerInputState" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::SetFingerInputState" );
 			mProcessor->SetRegister( 0, (KUInt32) -56008 );
 			break;
 
 		case 0x11:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::RecalibrateTabletAfterRotate" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::RecalibrateTabletAfterRotate" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x12:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::TabletNeedsRecalibration" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::TabletNeedsRecalibration" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x13:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::StartBypassTablet" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::StartBypassTablet" );
 			mScreenManager->StartBypassTablet();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x14:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::StopBypassTablet" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::StopBypassTablet" );
 			mScreenManager->StopBypassTablet();
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x15:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->LogLine( "TMainTabletDriver::ReturnTabletToConsciousness" );
-			}
+			FLogLine( (1 << 5), "TMainTabletDriver::ReturnTabletToConsciousness" );
 			mProcessor->SetRegister( 0, 0 );
 			break;
 
 		case 0x16:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-//				mLog->LogLine( "TMainTabletDriver::NativeGetSample" );
-			}
+			//FLogLine( (1 << 5), "TMainTabletDriver::NativeGetSample" );
 			{
 //				mEmulator->BreakInMonitor();
 				KUInt32 theSampleRecord = 0;
@@ -2000,233 +1656,270 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x5)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 5),
 					"Unknown tablet driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
 // -------------------------------------------------------------------------- //
 //  * ExecuteSerialDriverNative( KUInt32 )
-// Matt: to the best of my knowledge, the serial port drivers can not, or at
-//		least not with some additional effort, be replaced by drivers from
-//		a ROM extension. TBasicSerialPortManager was written to emulate
-//		the serial port on the lowest hardware level.
 // -------------------------------------------------------------------------- //
 void
 TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 {
-	if (mLog && (mLogMask & (1 << 0x6)))
+	// Ignore calls for the Voyager chipset as it needs to be handled on
+	// the lower levels of the emulator.
+	if ((inInstruction & 0xFF) < 0x30)
 	{
-		KUInt32 theLocation = -1;
-		(void) mMemory->Read(mProcessor->GetRegister(0) + 16, theLocation);
-		mLog->FLogLine(
-			"Hardware location (?) %.8X",
-			theLocation);
+		mProcessor->SetRegister( 0, 0 );
 	}
-
-	switch (inInstruction & 0xFF)
+	else
 	{
-//		case 0x01:
-//			// New__18TSerialChipVoyagerFv
-//			break;
+		KUInt32 location;
+		mMemory->ReadAligned (mProcessor->GetRegister( 0 ) + 0x10, location);
+		switch (inInstruction & 0xFF)
+		{
+			// TSerialChipEinstein primitives
 
-//		case 0x02:
-//			// Delete__18TSerialChipVoyagerFv
-//			break;
+			case 0x31:
+				FLogLine( (1 << 6),"TSerialChipEinstein::New");
+				break;
 
-		case 0x03:
-			// InstallChipHandler__18TSerialChipVoyagerFPvP14SCCChannelInts
-			break;
+			case 0x32:
+				FLogLine( (1 << 6),"TSerialChipEinstein::Delete");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x04:
-			// RemoveChipHandler__18TSerialChipVoyagerFPv
-			break;
+			case 0x33:
+				FLogLine( (1 << 6),"TSerialChipEinstein::InstallChipHandler");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x05:
-			// PutByte__18TSerialChipVoyagerFUc
-			break;
+			case 0x34:
+				FLogLine( (1 << 6),"TSerialChipEinstein::RemoveChipHandler");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x06:
-			// ResetTxBEmpty__18TSerialChipVoyagerFv
-			break;
+			case 0x35:
+				FLogLine( (1 << 6),"TSerialChipEinstein::PutByte");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x07:
-			// GetByte__18TSerialChipVoyagerFv
-			break;
+			case 0x36:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ResetTxBEmpty");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x08:
-			// TxBufEmpty__18TSerialChipVoyagerFv
-			break;
+			case 0x37:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetByte");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x09:
-			// RxBufFull__18TSerialChipVoyagerFv
-			break;
+			case 0x38:
+				FLogLine( (1 << 6),"TSerialChipEinstein::TxBufEmpty");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0A:
-			// GetRxErrorStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x39:
+				FLogLine( (1 << 6),"TSerialChipEinstein::RxBufFull");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0B:
-			// GetSerialStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x3A:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetRxErrorStatus");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0C:
-			// ResetSerialStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x3B:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetSerialStatus");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0D:
-			// SetSerialOutputs__18TSerialChipVoyagerFUl
-			break;
+			case 0x3C:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ResetSerialStatus");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0E:
-			// ClearSerialOutputs__18TSerialChipVoyagerFUl
-			break;
+			case 0x3D:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetSerialOutputs");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x0F:
-			// GetSerialOutputs__18TSerialChipVoyagerFv
-			break;
+			case 0x3E:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ClearSerialOutputs");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x10:
-			// PowerOff__18TSerialChipVoyagerFv
-			break;
+			case 0x3F:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetSerialOutputs");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x11:
-			// PowerOn__18TSerialChipVoyagerFv
-			break;
+			case 0x40:
+				FLogLine( (1 << 6),"TSerialChipEinstein::PowerOff");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x12:
-			// PowerIsOn__18TSerialChipVoyagerFv
-			break;
+			case 0x41:
+				FLogLine( (1 << 6),"TSerialChipEinstein::PowerOn", mProcessor->GetRegister (0), mProcessor->GetRegister (1));
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x13:
-			// SetInterruptEnable__18TSerialChipVoyagerFUc
-			break;
+			case 0x42:
+				FLogLine( (1 << 6),"TSerialChipEinstein::PowerIsOn");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x14:
-			// Reset__18TSerialChipVoyagerFv
-			break;
+			case 0x43:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetInterruptEnable");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x15:
-			// SetBreak__18TSerialChipVoyagerFUc
-			break;
+			case 0x44:
+				FLogLine( (1 << 6),"TSerialChipEinstein::Reset");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x16:
-			// SetSpeed__18TSerialChipVoyagerFUl
-			break;
+			case 0x45:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetBreak");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x17:
-			// SetIOParms__18TSerialChipVoyagerFP17TCMOSerialIOParms
-			break;
+			case 0x46:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetSpeed");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x18:
-			// Reconfigure__18TSerialChipVoyagerFv
-			break;
+			case 0x47:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetIOParms");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x19:
-			// Init__18TSerialChipVoyagerFP11TCardSocketP12TCardHandlerPUc
-			break;
+			case 0x48:
+				FLogLine( (1 << 6),"TSerialChipEinstein::Reconfigure");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1A:
-			// CardRemoved__18TSerialChipVoyagerFv
-			break;
+			case 0x49:
+				FLogLine( (1 << 6),"TSerialChipEinstein::Init");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1B:
-			// GetFeatures__18TSerialChipVoyagerFv
-			break;
+			case 0x4A:
+				FLogLine( (1 << 6),"TSerialChipEinstein::CardRemoved");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1C:
-			// InitByOption__18TSerialChipVoyagerFP7TOption
-			break;
+			case 0x4B:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetFeatures");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1D:
-			// ProcessOption__18TSerialChipVoyagerFP7TOption
-			break;
+			case 0x4C:
+				FLogLine( (1 << 6),"TSerialChipEinstein::InitByOption");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1E:
-			// SetSerialMode__18TSerialChipVoyagerFUl
-			break;
+			case 0x4D:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ProcessOption");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x1F:
-			// SysEventNotify__18TSerialChipVoyagerFUl
-			break;
+			case 0x4E:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetSerialMode");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x20:
-			// SetTxDTransceiverEnable__18TSerialChipVoyagerFUc
-			break;
+			case 0x4F:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SysEventNotify");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x21:
-			// GetByteAndStatus__18TSerialChipVoyagerFPUc
-			break;
+			case 0x50:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetTxDTransceiverEnable");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x22:
-			// SetIntSourceEnable__18TSerialChipVoyagerFUlUc
-			break;
+			case 0x51:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetByteAndStatus");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x23:
-			// AllSent__18TSerialChipVoyagerFv
-			break;
+			case 0x52:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetIntSourceEnable");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x24:
-			// ConfigureForOutput__18TSerialChipVoyagerFUc
-			break;
+			case 0x53:
+				FLogLine( (1 << 6),"TSerialChipEinstein::AllSent");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x25:
-			// InitTxDMA__18TSerialChipVoyagerFP10TCircleBufPFPv_v
-			break;
+			case 0x54:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ConfigureForOutput");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x26:
-			// InitRxDMA__18TSerialChipVoyagerFP10TCircleBufUlPFPvUl_v
-			break;
+			case 0x55:
+				FLogLine( (1 << 6),"TSerialChipEinstein::InitTxDMA");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x27:
-			// TxDMAControl__18TSerialChipVoyagerFUc
-			break;
+			case 0x56:
+				FLogLine( (1 << 6),"TSerialChipEinstein::InitRxDMA");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x28:
-			// RxDMAControl__18TSerialChipVoyagerFUc
-			break;
+			case 0x57:
+				FLogLine( (1 << 6),"TSerialChipEinstein::TxDMAControl");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x29:
-			// SetSDLCAddress__18TSerialChipVoyagerFUc
-			break;
+			case 0x58:
+				FLogLine( (1 << 6),"TSerialChipEinstein::RxDMAControl");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x2A:
-			// ReEnableReceiver__18TSerialChipVoyagerFUc
-			break;
+			case 0x59:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SetSDLCAddress");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x2B:
-			// LinkIsFree__18TSerialChipVoyagerFUc
-			break;
+			case 0x5A:
+				FLogLine( (1 << 6),"TSerialChipEinstein::ReEnableReceiver");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x2C:
-			// SendControlPacket__18TSerialChipVoyagerFUcN21
-			break;
+			case 0x5B:
+				FLogLine( (1 << 6),"TSerialChipEinstein::LinkIsFree");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x2D:
-			// WaitForPacket__18TSerialChipVoyagerFUl
-			break;
+			case 0x5C:
+				FLogLine( (1 << 6),"TSerialChipEinstein::SendControlPacket");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		case 0x2E:
-			// WaitForAllSent__18TSerialChipVoyagerFv
-			break;
+			case 0x5D:
+				FLogLine( (1 << 6),"TSerialChipEinstein::WaitForPacket");
+				mProcessor->SetRegister( 0, 0 );
+				break;
 
-		default:
-			if (mLog && (mLogMask & (1 << 0x6)))
-			{
-				mLog->FLogLine(
+			case 0x5E:
+				FLogLine( (1 << 6),"TSerialChipEinstein::WaitForAllSent");
+				mProcessor->SetRegister( 0, 0 );
+				break;
+
+			default:
+				FLogLine( (1 << 6),
 					"Unknown serial driver native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
-			mProcessor->SetRegister( 0, 0 );
+				mProcessor->SetRegister( 0, 0 );
+		}
 	}
-
-	mProcessor->SetRegister( 0, 0 );
 }
 
 // -------------------------------------------------------------------------- //
@@ -2238,13 +1931,10 @@ TNativePrimitives::ExecuteInTranslatorNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		default:
-			if (mLog && (mLogMask & (1 << 0x7)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 7),
 					"Unknown in-translator native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 	}
 }
@@ -2258,13 +1948,10 @@ TNativePrimitives::ExecuteOutTranslatorNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		default:
-			if (mLog && (mLogMask & (1 << 0x8)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 8),
 					"Unknown out-translator native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
-			}
 			mProcessor->SetRegister( 0, 0 );
 	}
 }
@@ -2279,42 +1966,27 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::New" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::New" );
 			break;
 
 		case 0x02:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Delete" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Delete" );
 			break;
 
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::OpenLib" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::OpenLib" );
 			mProcessor->SetRegister(0,
 				mNativeCalls->OpenLib(mProcessor->GetRegister(1)));
 			break;
 
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::CloseLib" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::CloseLib" );
 			mNativeCalls->CloseLib(mProcessor->GetRegister(1));
 			mProcessor->SetRegister(0, 0);
 			break;
 
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::PrepareFFIStructure" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::PrepareFFIStructure" );
 			mProcessor->SetRegister(0,
 				mNativeCalls->PrepareFFIStructure(
 					mProcessor->GetRegister(1),
@@ -2323,19 +1995,13 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::DisposeFFIStructure" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::DisposeFFIStructure" );
 			mNativeCalls->DisposeFFIStructure(mProcessor->GetRegister(1));
 			mProcessor->SetRegister(0, 0);
 			break;
 
 		case 0x07:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::GetErrorMessage" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::GetErrorMessage" );
 			mNativeCalls->GetErrorMessage(
 				mProcessor->GetRegister(1),
 				mProcessor->GetRegister(2));
@@ -2343,10 +2009,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x10:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_uint8" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_uint8" );
 			mNativeCalls->SetArgValue_uint8(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2356,10 +2019,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 
 
 		case 0x11:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_sint8" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_sint8" );
 			mNativeCalls->SetArgValue_sint8(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2368,10 +2028,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x12:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_uint16" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_uint16" );
 			mNativeCalls->SetArgValue_uint16(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2381,10 +2038,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 
 
 		case 0x13:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_sint16" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_sint16" );
 			mNativeCalls->SetArgValue_sint16(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2393,10 +2047,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x14:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_uint32" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_uint32" );
 			mNativeCalls->SetArgValue_uint32(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2406,10 +2057,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 
 
 		case 0x15:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_sint32" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_sint32" );
 			mNativeCalls->SetArgValue_sint32(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2418,10 +2066,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x16:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_uint64" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_uint64" );
 //			mNativeCalls->SetArgValue_uint64(
 //							mProcessor->GetRegister(1),
 //							mProcessor->GetRegister(2),
@@ -2431,10 +2076,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 
 
 		case 0x17:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_sint64" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_sint64" );
 //			mNativeCalls->SetArgValue_sint64(
 //							mProcessor->GetRegister(1),
 //							mProcessor->GetRegister(2),
@@ -2443,10 +2085,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x18:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_float" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_float" );
 //			mNativeCalls->SetArgValue_float(
 //							mProcessor->GetRegister(1),
 //							mProcessor->GetRegister(2),
@@ -2455,10 +2094,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x19:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_double" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_double" );
 //			mNativeCalls->SetArgValue_double(
 //							mProcessor->GetRegister(1),
 //							mProcessor->GetRegister(2),
@@ -2467,10 +2103,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x1A:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_longdouble" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_longdouble" );
 //			mNativeCalls->SetArgValue_longdouble(
 //							mProcessor->GetRegister(1),
 //							mProcessor->GetRegister(2),
@@ -2479,10 +2112,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x1B:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_string" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_string" );
 			{
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
@@ -2496,10 +2126,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x1C:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_binary" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_binary" );
 			{
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
@@ -2513,10 +2140,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x1D:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetArgValue_pointer" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetArgValue_pointer" );
 			mNativeCalls->SetArgValue_pointer(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2525,10 +2149,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x20:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::SetResultType" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::SetResultType" );
 			mNativeCalls->SetResultType(
 							mProcessor->GetRegister(1),
 							(EFFI_Type) mProcessor->GetRegister(2));
@@ -2536,10 +2157,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x21:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::GetOutArgValue_string" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::GetOutArgValue_string" );
 			{
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
@@ -2553,10 +2171,7 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x22:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::GetOutArgValue_binary" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::GetOutArgValue_binary" );
 			{
 				KUInt32 fourthParam;
 				(void) mMemory->Read(mProcessor->GetRegister(13) + 4, fourthParam);
@@ -2570,40 +2185,28 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x30:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Call_void" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Call_void" );
 			mNativeCalls->Call_void(
 							mProcessor->GetRegister(1));
 			mProcessor->SetRegister(0, 0);
 			break;
 
 		case 0x31:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Call_int" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Call_int" );
 			mProcessor->SetRegister(0,
 				mNativeCalls->Call_int(
 							mProcessor->GetRegister(1)));
 			break;
 
 		case 0x32:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Call_real" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Call_real" );
 //			mProcessor->SetRegister(0,
 //				mNativeCalls->Call_real(
 //							mProcessor->GetRegister(1)));
 			break;
 
 		case 0x33:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Call_string" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Call_string" );
 			mNativeCalls->Call_string(
 							mProcessor->GetRegister(1),
 							mProcessor->GetRegister(2),
@@ -2612,27 +2215,19 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			break;
 
 		case 0x34:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::Call_string" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::Call_string" );
 			mProcessor->SetRegister(0,
 				/* (KUInt32) */ mNativeCalls->Call_pointer(
 							mProcessor->GetRegister(1)));
 			break;
 
 		case 0x40:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->LogLine( "TEinsteinNativeCalls::GetErrno" );
-			}
+			FLogLine( (1 << 9), "TEinsteinNativeCalls::GetErrno" );
 			mProcessor->SetRegister(0, mNativeCalls->GetErrno());
 			break;
 
 		default:
-			if (mLog && (mLogMask & (1 << 0x9)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 9),
 					"Unknown call native primitive %.8X (pc=%.8X)",
 					(unsigned int) inInstruction,
 					(unsigned int) mProcessor->GetRegister(15) );
@@ -2640,9 +2235,8 @@ TNativePrimitives::ExecuteHostCallNative( KUInt32 inInstruction )
 			mProcessor->SetRegister( 0, 0 );
 	}
 #else
-	if (mLog && (mLogMask & (1 << 0x9)))
 	{
-		mLog->FLogLine("Native primitives not supported on this platform");
+		FLogLine( 0xcafebabe,"Native primitives not supported on this platform");
 	}
 #endif
 }
@@ -2659,16 +2253,12 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 
 		case 0x00:
 			// Just log some unknown function without causing a fuss
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::Unknown" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::Unknown" );
 			break;
-		case 0x01: {
-			// Write some string to the log buffer (reg0 points to the string)
-			KUInt32 addr = mProcessor->GetRegister(0);
-			if (mLog && addr)
+		case 0x01:
 			{
+				// Write some string to the log buffer (reg0 points to the string)
+				KUInt32 addr = mProcessor->GetRegister(0);
 				char buffer[1024], *dst = buffer+22;
 				strcpy(buffer, "TNetworkManager::Log: ");
 				for (;;) {
@@ -2677,82 +2267,55 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 					*dst++ = (char)v;
 					if (v==0) break;
 				}
-				mLog->LogLine(buffer);
+				FLogLine( (1 << 10),buffer);
 			}
-	        break; }
+	        break;
 
 			// Protocol Class Interface
 
 		case 0x02:
 			// a new driver is beeing created
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::New" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::New" );
 			break;
 		case 0x03:
 			// the driver is beeing deleted
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::Delete" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::Delete" );
 			break;
 
 			// Task services
 
 		case 0x04:
 			// Initialize the card driver
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::Init" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::Init" );
 			break;
 		case 0x05:
 			// Enable the card (switch power on)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::Enable" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::Enable" );
 			break;
 		case 0x06:
 			// Disable the card (power off to save battery)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::Disable" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::Disable" );
 			break;
 		case 0x07:
 			// Handle any kind of interrupt by the hardware
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::InterruptHandler" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::InterruptHandler" );
 			break;
 
 			// Client Services (from event handlers of TLanternDriverAPI)
 
 		case 0x08:
 			// Newton transfers data to the world (calls SendPacket)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::SendBuffer" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::SendBuffer" );
 			break;
 		case 0x09:
 			// Newton transfers data to the world (calls SendPacket)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::SendCBufferList" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::SendCBufferList" );
 			break;
 		case 0x0a: {
 			// Newton wants to send a raw packet into the world
 			KUInt32 addr = mProcessor->GetRegister(1);
 			KUInt32 size = mProcessor->GetRegister(2), i;
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->FLogLine( "TNetworkManager::SendPacket(0x%08x, %d)", addr, size );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::SendPacket(0x%08x, %d)", addr, size );
 			if (mNetworkManager && size) {
 				KUInt8 *data = (KUInt8*)malloc(size), v;
 				for (i=0; i<size; i++) {
@@ -2768,10 +2331,7 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 			KUInt32 dstBuffer = mProcessor->GetRegister(1);
 			KUInt32 dstBufferSize = mProcessor->GetRegister(2);
 			KUInt32 i, err = 0;
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->FLogLine( "TNetworkManager::GetDeviceAddress(0x%08x, %d)", dstBuffer, dstBufferSize );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::GetDeviceAddress(0x%08x, %d)", dstBuffer, dstBufferSize );
 			if (mNetworkManager && dstBufferSize) {
 				KUInt8 mac[6] = { 0 };
 				err = (KUInt32)mNetworkManager->GetDeviceAddress(mac, dstBufferSize);
@@ -2782,51 +2342,33 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 			break; }
 		case 0x0c:
 			// NewtonOS wants to add a multicast address (not implemented)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::AddMulticastAddress" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::AddMulticastAddress" );
 			break;
 		case 0x0d:
 			// NewtonOS wants to remove a multicast address (not implemented)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::DelMulticastAddress" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::DelMulticastAddress" );
 			break;
 		case 0x0e:
 			// NewtonOS wants to know if the links are OK  (not implemented)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::GetLinkIntegrity" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::GetLinkIntegrity" );
 			break;
 
 			// Optional services
 
 		case 0x0f:
 			// receive every packet on the network, even those that are not meant for us (not implemented)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::SetPromiscuous" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::SetPromiscuous" );
 			break;
 		case 0x10:
 			// return some number that gives the actual speed of the connection (not implemented)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::GetThroughput" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::GetThroughput" );
 			break;
 
 			// Private Template Services
 
 		case 0x11:
 			// a regular timer that can help us poll data and monitor integrity and throughput
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::TimerExpired" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::TimerExpired" );
 			mNetworkManager->TimerExpired();
 			break;
 
@@ -2834,17 +2376,11 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 
 		case 0x12:
 			// Initialize card (not needed?!)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::InitCard" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::InitCard" );
 			break;
 		case 0x13:
 			// Set the card info (not needed?!)
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->LogLine( "TNetworkManager::SetCardInfo" );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::SetCardInfo" );
 			break;
 		case 0x14: {
 			// Return number of bytes in the first packet available in R0
@@ -2853,19 +2389,13 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 				size = mNetworkManager->DataAvailable();
 			}
 			mProcessor->SetRegister(0, size);
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->FLogLine( "TNetworkManager::DataAvailable(Avail: %d)", size );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::DataAvailable(Avail: %d)", size );
 			break; }
 		case 0x15: {
 			// Copy the next available packet into the buffer pointed to by R1
 			KUInt32 dst = mProcessor->GetRegister(1);
 			KUInt32 i, n = mProcessor->GetRegister(2);
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->FLogLine( "TNetworkManager::ReceiveData (buffer=0x%08x, size=%d", dst, n );
-			}
+			FLogLine( (1 << 10), "TNetworkManager::ReceiveData (buffer=0x%08x, size=%d", dst, n );
 			if (mNetworkManager && n) {
 				KUInt8 *buffer = (KUInt8*)malloc(n);
 				mNetworkManager->ReceiveData(buffer, n);
@@ -2878,7 +2408,6 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 			// Print some memory location
 			KUInt32 addr = mProcessor->GetRegister(0);
 			KUInt32 size = mProcessor->GetRegister(1), i;
-			if (mLog && size)
 			{
 				KUInt8 *buffer = (KUInt8*)malloc(size);
 				for (i=0;i<size;i++) {
@@ -2891,13 +2420,10 @@ TNativePrimitives::ExecuteNetworkManagerNative( KUInt32 inInstruction )
 	        break; }
 
 		default:
-			if (mLog && (mLogMask & (1 << 0xa)))
-			{
-				mLog->FLogLine(
+			FLogLine( (1 << 10),
 							   "TNetworkManager: Unknown native primitive %.8X (pc=%.8X)",
 							   (unsigned int) inInstruction,
 							   (unsigned int) mProcessor->GetRegister(15) );
-			}
 	}
 }
 
@@ -2908,69 +2434,45 @@ TNativePrimitives::ExecuteHostiOSNativeiOS( KUInt32 inInstruction )
 	switch (inInstruction & 0xFF)
 	{
 		case 0x01:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostGetCPUArchitecture" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostGetCPUArchitecture" );
 			//
 			mProcessor->SetRegister(0, mObjCBridgeCalls->HostGetCPUArchitecture());
 			break;
 		case 0x02:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostMakeNSInvocation" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostMakeNSInvocation" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostMakeNSInvocation(mProcessor->GetRegister(0),
 																		   mProcessor->GetRegister(1),
 																		   mProcessor->GetRegister(2)));
 			break;
 		case 0x03:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostSetInvocationTarget" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostSetInvocationTarget" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostSetInvocationTarget(mProcessor->GetRegister(0),
 																			  mProcessor->GetRegister(1)));
 			break;
 		case 0x04:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostSetInvocationArgument_Object" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostSetInvocationArgument_Object" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostSetInvocationArgument_Object(mProcessor->GetRegister(0), mProcessor->GetRegister(1), mProcessor->GetRegister(2)));
 			break;
 		case 0x05:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostGetInvocationReturn_Object" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostGetInvocationReturn_Object" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostGetInvocationReturn_Object(mProcessor->GetRegister(0), mProcessor->GetRegister(1)));
 			break;
 		case 0x06:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostInvoke" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostInvoke" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostInvoke(mProcessor->GetRegister(0)));
 			break;
 		case 0x07:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostReleaseObject" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostReleaseObject" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostReleaseObject(mProcessor->GetRegister(0)));
 			break;
 		case 0x08:
-			if (mLog && (mLogMask & (1 << 0xb)))
-			{
-				mLog->LogLine( "TObjCBridgeCalls::HostMakeNSString" );
-			}
+			FLogLine( (1 << 11), "TObjCBridgeCalls::HostMakeNSString" );
 			mProcessor->SetRegister(0,
 									mObjCBridgeCalls->HostMakeNSString(mProcessor->GetRegister(0),
 																	   mProcessor->GetRegister(1)));
