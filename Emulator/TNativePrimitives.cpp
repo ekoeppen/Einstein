@@ -123,10 +123,12 @@ TNativePrimitives::FLogLine( KUInt32 inDriver, const char* inFormat, ... )
 {
 	if (mLog && (inDriver & mLogMask))
 	{
+		char bufferLine[512];
 		va_list argList;
 
 		va_start(argList, inFormat);
-		mLog->FLogLine (inFormat, argList);
+		(void) ::vsnprintf( bufferLine, sizeof(bufferLine), inFormat, argList );
+		mLog->LogLine ( bufferLine );
 		va_end(argList);
 	}
 }
