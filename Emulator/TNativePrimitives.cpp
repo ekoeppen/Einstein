@@ -1825,7 +1825,18 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 				break;
 
 			case 0x4D:
-				FLogLine( (1 << 6),"TSerialChipEinstein::ProcessOption");
+				{
+					KUInt32 optionAddr = mProcessor->GetRegister( 1 );
+					KUInt32 location;
+					KUInt32 type;
+					mMemory->Read( optionAddr + 12, location );
+					mMemory->Read( optionAddr + 16, type );
+					FLogLine( (1 << 6),"TSerialChipEinstein::ProcessOption %08x %08x", location, type );
+					mEmulator->SerialPorts.ReplaceDriver(
+							static_cast<TSerialPorts::EPortIndex>( location ),
+							static_cast<TSerialPorts::EDriverID>( type ));
+
+				}
 				mProcessor->SetRegister( 0, 0 );
 				break;
 
