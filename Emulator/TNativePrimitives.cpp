@@ -41,6 +41,7 @@
 #include "Emulator/TEmulator.h"
 #include "Emulator/TMemory.h"
 #include "Emulator/TARMProcessor.h"
+#include "Emulator/TInterruptManager.h"
 #include "Emulator/Screen/TScreenManager.h"
 #include "Emulator/Network/TNetworkManager.h"
 #include "Emulator/Sound/TSoundManager.h"
@@ -1706,6 +1707,7 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 
 			case 0x35:
 				FLogLine( (1 << 6),"TSerialChipEinstein::PutByte");
+				mEmulator->GetInterruptManager()->RaiseInterrupt( 0x00100000 );
 				mProcessor->SetRegister( 0, 0 );
 				break;
 
@@ -1922,6 +1924,11 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 
 			case 0x5E:
 				FLogLine( (1 << 6),"TSerialChipEinstein::WaitForAllSent");
+				mProcessor->SetRegister( 0, 0 );
+				break;
+
+			case 0x5F:
+				FLogLine( (1 << 6),"TSerialChipEinstein::GetInterruptStatus");
 				mProcessor->SetRegister( 0, 0 );
 				break;
 

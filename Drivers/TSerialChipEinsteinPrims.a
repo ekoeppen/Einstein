@@ -33,8 +33,8 @@ id_for_$symbol
 	DCD			$id
 	MEND
 
-	NATIVE_PRIM	0x00000631,	New__19TSerialChipEinsteinFv
-	NATIVE_PRIM	0x00000632,	Delete__19TSerialChipEinsteinFv
+;	NATIVE_PRIM	0x00000631,	New__19TSerialChipEinsteinFv
+;	NATIVE_PRIM	0x00000632,	Delete__19TSerialChipEinsteinFv
 	NATIVE_PRIM	0x00000633,	InstallChipHandler__19TSerialChipEinsteinFPvP14SCCChannelInts
 	NATIVE_PRIM	0x00000634,	RemoveChipHandler__19TSerialChipEinsteinFPv
 	NATIVE_PRIM	0x00000635,	PutByte__19TSerialChipEinsteinFUc
@@ -79,6 +79,7 @@ id_for_$symbol
 	NATIVE_PRIM	0x0000065C,	SendControlPacket__19TSerialChipEinsteinFUcN21
 	NATIVE_PRIM	0x0000065D,	WaitForPacket__19TSerialChipEinsteinFUl
 	NATIVE_PRIM	0x0000065E,	WaitForAllSent__19TSerialChipEinsteinFv
+	NATIVE_PRIM	0x0000065F,	GetInterruptStatus__19TSerialChipEinsteinFv
 
 	END
 

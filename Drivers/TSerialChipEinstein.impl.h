@@ -26,10 +26,13 @@
 
 #include "SerialChipV2.h"
 
+struct InterruptObject;
+
 class THMOSerialEinsteinHardware : public TOption
 {
 public:
-	ULong	fLocationID;
+	ULong	fLocationID;	// synthetic hardware location
+	ULong	fType;			// host side driver type
 };
 
 ///
@@ -135,8 +138,13 @@ public:
 	NewtonErr			WaitForAllSent(); 			// delay until all bytes have been sent
 
 private:
-	ULong				fFiller_16;
+	ULong				GetInterruptStatus();		// get the interrupt state from the host driver
+	NewtonErr			HandleInterrupt();
+
 	ULong				fLocationID;
+	InterruptObject*	fInterruptObject;
+	void*				fSerialTool;
+	SCCChannelInts 		fIntHandlers;
 };
 
 #endif

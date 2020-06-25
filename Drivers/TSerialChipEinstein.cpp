@@ -25,11 +25,54 @@
 #include <OptionArray.h>
 #include <HALOptions.h>
 #include <CommErrors.h>
+#include "K/Misc/RelocHack.h"
 
 extern "C" void Reset(void);
 
 PROTOCOL_IMPL_SOURCE_MACRO(TSerialChipEinstein)	// Magic stuff, do not touch
 
+typedef long (*InterruptHandlerProcPtr)(void*);
+
+InterruptObject* RegisterInterrupt(
+	ULong inInterruptMask,
+	void* inCookie,
+	InterruptHandlerProcPtr inHandler,
+	ULong inFlags);
+Long DeregisterInterrupt(InterruptObject*);
+
+extern "C" long EnableInterrupt(InterruptObject*, ULong);
+extern "C" long DisableInterrupt(InterruptObject*);
+extern "C" long ClearInterrupt(InterruptObject*);
+
+NewtonErr
+TSerialChipEinstein::HandleInterrupt()
+{
+    ULong intStatus = GetInterruptStatus();
+    if (intStatus & 0x00000001) {
+        (fIntHandlers.TxBEmptyIntHandler)(fSerialTool);
+    }
+    if (intStatus & 0x00000002) {
+        (fIntHandlers.RxCAvailIntHandler)(fSerialTool);
+    }
+    return noErr;
+}
+
+TSerialChip*
+TSerialChipEinstein::New(void)
+{
+    fInterruptObject = RegisterInterrupt(0x00100000,
+            this,
+            (InterruptHandlerProcPtr) RelocFuncPtr(&TSerialChipEinstein::HandleInterrupt),
+            0);
+    EnableInterrupt(fInterruptObject, 0);
+	return this;
+}
+
+void
+TSerialChipEinstein::Delete( void )
+{
+	DeregisterInterrupt(fInterruptObject);
+}
 // =============================== //
 // //GO.SYSIN DD *, DOODAH, DOODAH //
 // =============================== //

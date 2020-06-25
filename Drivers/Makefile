@@ -245,6 +245,7 @@ EinsteinStartupDriver.pkg	: EinsteinStartupDriver.bin
 
 EinsteinSerialDriver.bin :		TSerialChipEinstein.impl.o \
 								TSerialChipEinstein.o \
+								RelocHack.o \
 								TSerialChipEinsteinPrims.o
 	${ARMLink} ${LinkOptions} ${Libraries} \
 		$(^F) -o $(@F)
