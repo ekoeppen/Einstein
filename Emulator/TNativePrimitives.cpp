@@ -2013,218 +2013,359 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 
 // -------------------------------------------------------------------------- //
 //  * ExecuteSerialDriverNative( KUInt32 )
-// Matt: to the best of my knowledge, the serial port drivers can not, or at
-//		least not with some additional effort, be replaced by drivers from
-//		a ROM extension. TBasicSerialPortManager was written to emulate
-//		the serial port on the lowest hardware level.
 // -------------------------------------------------------------------------- //
 void
 TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 {
-	if (mLog)
+	// Ignore calls for the Voyager chipset as it needs to be handled on
+	// the lower levels of the emulator.
+	if ((inInstruction & 0xFF) < 0x30)
 	{
-		KUInt32 theLocation = -1;
-		(void) mMemory->Read(mProcessor->GetRegister(0) + 16, theLocation);
-		mLog->FLogLine(
-			"Hardware location (?) %.8X",
-			theLocation);
+		mProcessor->SetRegister( 0, 0 );
 	}
-			
-	switch (inInstruction & 0xFF)
+	else
 	{
-//		case 0x01:
-//			// New__18TSerialChipVoyagerFv
-//			break;
+		switch (inInstruction & 0xFF)
+		{
+			// TSerialChipEinstein primitives
 
-//		case 0x02:
-//			// Delete__18TSerialChipVoyagerFv
-//			break;
+			case 0x31:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::New" );
+				}
+				break;
 
-		case 0x03:
-			// InstallChipHandler__18TSerialChipVoyagerFPvP14SCCChannelInts
-			break;
+			case 0x32:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::Delete" );
+				}
+				break;
 
-		case 0x04:
-			// RemoveChipHandler__18TSerialChipVoyagerFPv
-			break;
+			case 0x33:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::InstallChipHandler" );
+				}
+				break;
 
-		case 0x05:
-			// PutByte__18TSerialChipVoyagerFUc
-			break;
+			case 0x34:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::RemoveChipHandler" );
+				}
+				break;
 
-		case 0x06:
-			// ResetTxBEmpty__18TSerialChipVoyagerFv
-			break;
+			case 0x35:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::PutByte" );
+				}
+				break;
 
-		case 0x07:
-			// GetByte__18TSerialChipVoyagerFv
-			break;
+			case 0x36:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ResetTxBEmpty" );
+				}
+				break;
 
-		case 0x08:
-			// TxBufEmpty__18TSerialChipVoyagerFv
-			break;
+			case 0x37:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetByte" );
+				}
+				break;
 
-		case 0x09:
-			// RxBufFull__18TSerialChipVoyagerFv
-			break;
+			case 0x38:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::TxBufEmpty" );
+				}
+				break;
 
-		case 0x0A:
-			// GetRxErrorStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x39:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::RxBufFull" );
+				}
+				break;
 
-		case 0x0B:
-			// GetSerialStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x3A:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetRxErrorStatus" );
+				}
+				break;
 
-		case 0x0C:
-			// ResetSerialStatus__18TSerialChipVoyagerFv
-			break;
+			case 0x3B:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetSerialStatus" );
+				}
+				break;
 
-		case 0x0D:
-			// SetSerialOutputs__18TSerialChipVoyagerFUl
-			break;
+			case 0x3C:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ResetSerialStatus" );
+				}
+				break;
 
-		case 0x0E:
-			// ClearSerialOutputs__18TSerialChipVoyagerFUl
-			break;
+			case 0x3D:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetSerialOutputs" );
+				}
+				break;
 
-		case 0x0F:
-			// GetSerialOutputs__18TSerialChipVoyagerFv
-			break;
+			case 0x3E:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ClearSerialOutputs" );
+				}
+				break;
 
-		case 0x10:
-			// PowerOff__18TSerialChipVoyagerFv
-			break;
+			case 0x3F:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetSerialOutputs" );
+				}
+				break;
 
-		case 0x11:
-			// PowerOn__18TSerialChipVoyagerFv
-			break;
+			case 0x40:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::PowerOff" );
+				}
+				break;
 
-		case 0x12:
-			// PowerIsOn__18TSerialChipVoyagerFv
-			break;
+			case 0x41:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::PowerOn" );
+				}
+				break;
 
-		case 0x13:
-			// SetInterruptEnable__18TSerialChipVoyagerFUc
-			break;
+			case 0x42:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::PowerIsOn" );
+				}
+				break;
 
-		case 0x14:
-			// Reset__18TSerialChipVoyagerFv
-			break;
+			case 0x43:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetInterruptEnable" );
+				}
+				break;
 
-		case 0x15:
-			// SetBreak__18TSerialChipVoyagerFUc
-			break;
+			case 0x44:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::Reset" );
+				}
 
-		case 0x16:
-			// SetSpeed__18TSerialChipVoyagerFUl
-			break;
+			case 0x45:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetBreak" );
+				}
+				break;
 
-		case 0x17:
-			// SetIOParms__18TSerialChipVoyagerFP17TCMOSerialIOParms
-			break;
+			case 0x46:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetSpeed" );
+				}
+				break;
 
-		case 0x18:
-			// Reconfigure__18TSerialChipVoyagerFv
-			break;
+			case 0x47:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetIOParms" );
+				}
+				break;
 
-		case 0x19:
-			// Init__18TSerialChipVoyagerFP11TCardSocketP12TCardHandlerPUc
-			break;
+			case 0x48:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::Reconfigure" );
+				}
+				break;
 
-		case 0x1A:
-			// CardRemoved__18TSerialChipVoyagerFv
-			break;
+			case 0x49:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::Init" );
+				}
+				break;
 
-		case 0x1B:
-			// GetFeatures__18TSerialChipVoyagerFv
-			break;
+			case 0x4A:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::CardRemoved" );
+				}
+				break;
 
-		case 0x1C:
-			// InitByOption__18TSerialChipVoyagerFP7TOption
-			break;
+			case 0x4B:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetFeatures" );
+				}
+				break;
 
-		case 0x1D:
-			// ProcessOption__18TSerialChipVoyagerFP7TOption
-			break;
+			case 0x4C:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::InitByOption" );
+				}
+				break;
 
-		case 0x1E:
-			// SetSerialMode__18TSerialChipVoyagerFUl
-			break;
+			case 0x4D:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ProcessOption" );
+				}
+				break;
 
-		case 0x1F:
-			// SysEventNotify__18TSerialChipVoyagerFUl
-			break;
+			case 0x4E:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetSerialMode" );
+				}
+				break;
 
-		case 0x20:
-			// SetTxDTransceiverEnable__18TSerialChipVoyagerFUc
-			break;
+			case 0x4F:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SysEventNotify" );
+				}
+				break;
 
-		case 0x21:
-			// GetByteAndStatus__18TSerialChipVoyagerFPUc
-			break;
+			case 0x50:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetTxDTransceiverEnable" );
+				}
+				break;
 
-		case 0x22:
-			// SetIntSourceEnable__18TSerialChipVoyagerFUlUc
-			break;
+			case 0x51:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetByteAndStatus" );
+				}
+				break;
 
-		case 0x23:
-			// AllSent__18TSerialChipVoyagerFv
-			break;
+			case 0x52:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetIntSourceEnable" );
+				}
+				break;
 
-		case 0x24:
-			// ConfigureForOutput__18TSerialChipVoyagerFUc
-			break;
+			case 0x53:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::AllSent" );
+				}
+				break;
 
-		case 0x25:
-			// InitTxDMA__18TSerialChipVoyagerFP10TCircleBufPFPv_v
-			break;
+			case 0x54:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ConfigureForOutput" );
+				}
+				break;
 
-		case 0x26:
-			// InitRxDMA__18TSerialChipVoyagerFP10TCircleBufUlPFPvUl_v
-			break;
+			case 0x55:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::InitTxDMA" );
+				}
+				break;
 
-		case 0x27:
-			// TxDMAControl__18TSerialChipVoyagerFUc
-			break;
+			case 0x56:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::InitRxDMA" );
+				}
+				break;
 
-		case 0x28:
-			// RxDMAControl__18TSerialChipVoyagerFUc
-			break;
+			case 0x57:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::TxDMAControl" );
+				}
+				break;
 
-		case 0x29:
-			// SetSDLCAddress__18TSerialChipVoyagerFUc
-			break;
+			case 0x58:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::RxDMAControl" );
+				}
+				break;
 
-		case 0x2A:
-			// ReEnableReceiver__18TSerialChipVoyagerFUc
-			break;
+			case 0x59:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SetSDLCAddress" );
+				}
+				break;
 
-		case 0x2B:
-			// LinkIsFree__18TSerialChipVoyagerFUc
-			break;
+			case 0x5A:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::ReEnableReceiver" );
+				}
+				break;
 
-		case 0x2C:
-			// SendControlPacket__18TSerialChipVoyagerFUcN21
-			break;
+			case 0x5B:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::LinkIsFree" );
+				}
+				break;
 
-		case 0x2D:
-			// WaitForPacket__18TSerialChipVoyagerFUl
-			break;
+			case 0x5C:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::SendControlPacket" );
+				}
+				break;
 
-		case 0x2E:
-			// WaitForAllSent__18TSerialChipVoyagerFv
-			break;
+			case 0x5D:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::WaitForPacket" );
+				}
+				break;
 
-		default:
-			if (mLog)
-			{
-				mLog->FLogLine(
-					"Unknown serial driver native primitive %.8X (pc=%.8X)",
-					(unsigned int) inInstruction,
-					(unsigned int) mProcessor->GetRegister(15) );
-			}
-			mProcessor->SetRegister( 0, 0 );
+			case 0x5E:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::WaitForAllSent" );
+				}
+				break;
+
+			case 0x5F:
+				if (mLog)
+				{
+					mLog->LogLine( "TSerialChipEinstein::GetInterruptStatus" );
+				}
+				break;
+
+			default:
+				if (mLog)
+				{
+					mLog->FLogLine(
+							"Unknown serial driver native primitive %.8X (pc=%.8X)",
+							(unsigned int) inInstruction,
+							(unsigned int) mProcessor->GetRegister(15) );
+				}
+		}
 	}
 
 	mProcessor->SetRegister( 0, 0 );
