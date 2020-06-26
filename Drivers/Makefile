@@ -59,16 +59,13 @@ CPlusIncludes		=	\
 		-i "${NCT_Includes}Frames:" \
 		-i "${NCT_Includes}Utilities:" \
 		-i "${NCT_Includes}:NSandDDK:" \
+		-i "${KPath_Classic}Emulator:Host:" \
+		-i "${KPath_Classic}Emulator:Platform:" \
+		-i "${KPath_Classic}Emulator:NativeCalls:" \
+		-i "${KPath_Classic}app:" \
 		-i "${KPath_Classic}"
 
 Libraries			=	"${NCT_Libraries}Newton Public APIs.o"
-
-headers = \
-	Headers/NativeCallsDefines.h \
-	Headers/PlatformGestalt.h \
-	Headers/PlatformEvents.h \
-	Headers/UserInfoDefinitions.h \
-	Headers/Version.h
 
 # --- rules ---
 
@@ -79,9 +76,9 @@ headers = \
 %.impl.a	: %.impl.pg ${headers}
 	${ProtocolGenTool} -date "`date +'%A, %B %d, %G %r'`" -trueinputfile $(basename $<).h $< -ServerGlue -package -stdout ---stdout-raw > $@
 
-%.o : %.c ${headers}
+%.o : %.c
 	${ARMCpp} $< ${CPlusOptions} ${CPlusIncludes} -o $(@F)
-%.o : %.cpp ${headers}
+%.o : %.cpp
 	${ARMCpp} $< ${CPlusOptions} ${CPlusIncludes} -o $(@F)
 %.o : %.a
 	${ARM6Asm} $< ${AsmIncludes} -o $(@F)
@@ -97,24 +94,6 @@ TNativeCalls.pg : TNativeCalls.h ${headers}
 	${ARM6c} -e -em -w -d PROTOCOLGEN $< ${CPlusOptionsDefines} ${CPlusIncludes} ---stdout-raw > $@
 TNativeCalls.a : TNativeCalls.pg ${headers}
 	${ProtocolGenTool} -date "`date +'%A, %B %d, %G %r'`" -trueinputfile $(basename $<).h $< -ClientGlue -stdout ---stdout-raw > $@
-
-# --- cf headers ---	
-
-Headers/%.h	:	../Emulator/Platform/%.h
-	mkdir -p Headers/
-	tr '\n' '\r' < $< > $@
-
-Headers/%.h	:	../Emulator/Host/%.h
-	mkdir -p Headers/
-	tr '\n' '\r' < $< > $@
-
-Headers/%.h	:	../Emulator/NativeCalls/%.h
-	mkdir -p Headers/
-	tr '\n' '\r' < $< > $@
-
-Headers/%.h	:	../app/%.h
-	mkdir -p Headers/
-	tr '\n' '\r' < $< > $@
 
 install : all
 	cp Einstein.rex ../_Data_/
