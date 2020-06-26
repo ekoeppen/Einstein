@@ -23,13 +23,14 @@ NCT_Includes        ?=  ::NewtonDev:C++:NCT_Projects:Includes:
 NCT_Libraries       ?=  ::NewtonDev:C++:NCT_Projects:Libraries:
 
 NCTTools            ?=  ../NewtonDev/C++/For\ MPW/•\ Put\ into\ MPW\ folder\ •/NCT_Folder/Tools
-ARM6Asm             ?=  mosrun ---run ${NCTTools}/ARM6Asm
-ARM6c               ?=  mosrun ---run ${NCTTools}/ARM6c
-ARMCpp              ?=  mosrun ---run ${NCTTools}/ARMCpp
-ARMLink             ?=  mosrun ---run ${NCTTools}/ARMLink
-Packer              ?=  mosrun ---run ${NCTTools}/Packer
-ProtocolGenTool     ?=  mosrun ---run ${NCTTools}/ProtocolGenTool
-Rex                 ?=  mosrun ---run ${NCTTools}/Rex
+ARM6Asm             ?=  ARM6asm
+ARM6c               ?=  ARM6c
+ARMCpp              ?=  ARMCpp
+ARMLink             ?=  ARMLink
+Packer              ?=  Packer
+ProtocolGenTool     ?=  ProtocolGenTool
+Rex                 ?=  Rex
+SetFile             ?=  echo
 
 # Package options:
 PackerCopyright		=	"Copyright (c) 2004-2020 Paul Guyot."
@@ -160,7 +161,7 @@ EinsteinPlatformDriver.pkg	: EinsteinPlatformDriver.bin
 		"EinsteinPlatformDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinSoundDriver.bin :		PMainSoundDriver.impl.o \
 								PMainSoundDriver.o \
@@ -176,7 +177,7 @@ EinsteinSoundDriver.pkg	: EinsteinSoundDriver.bin
 		"EinsteinSoundDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinBatteryDriver.bin :		PMainBatteryDriver.impl.o \
 								PMainBatteryDriver.o \
@@ -189,7 +190,7 @@ EinsteinBatteryDriver.pkg	: EinsteinBatteryDriver.bin
 		"EinsteinBatteryDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinScreenDriver.bin :		TMainDisplayDriver.impl.o \
 								TMainDisplayDriver.o \
@@ -202,7 +203,7 @@ EinsteinScreenDriver.pkg	: EinsteinScreenDriver.bin
 		"EinsteinScreenDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinTabletDriver.bin :		TMainTabletDriver.impl.o \
 								TMainTabletDriver.o \
@@ -216,7 +217,7 @@ EinsteinTabletDriver.pkg	: EinsteinTabletDriver.bin
 		"EinsteinTabletDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinVersionString.bin :		TMainVersionString.impl.o \
 								TMainVersionString.o
@@ -228,7 +229,7 @@ EinsteinVersionString.pkg	: EinsteinVersionString.bin
 		"EinsteinVersionString:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinStartupDriver.bin :		TMainStartupDriver.impl.o \
 								TMainStartupDriver.o
@@ -240,7 +241,7 @@ EinsteinStartupDriver.pkg	: EinsteinStartupDriver.bin
 		"EinsteinStartupDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinSerialDriver.bin :		TSerialChipVoyager.impl.o \
 								TSerialChipVoyager.o \
@@ -253,7 +254,7 @@ EinsteinSerialDriver.pkg	: EinsteinSerialDriver.bin
 		"EinsteinSerialDriver:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinInTranslator.bin :		PEinsteinInTranslator.impl.o \
 								PEinsteinInTranslator.o \
@@ -266,7 +267,7 @@ EinsteinInTranslator.pkg	: EinsteinInTranslator.bin
 		"EinsteinInTranslator:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinOutTranslator.bin :		PEinsteinOutTranslator.impl.o \
 								PEinsteinOutTranslator.o \
@@ -279,7 +280,7 @@ EinsteinOutTranslator.pkg	: EinsteinOutTranslator.bin
 		"EinsteinOutTranslator:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 EinsteinNativeCalls.bin :		TEinsteinNativeCalls.impl.o \
 								TEinsteinNativeCalls.o \
@@ -292,7 +293,7 @@ EinsteinNativeCalls.pkg	: EinsteinNativeCalls.bin
 		"EinsteinNativeCalls:Einstein" -packageid ' no ' -copyright ${PackerCopyright} \
 		-version 01 -invisible \
 		-protocol $(<F) -autoload
-	SetFile -t "pkg " -c "pkgX" $@
+	${SetFile} -t "pkg " -c "pkgX" $@
 
 # --- clean ---
 clean :
