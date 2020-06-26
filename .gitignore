@@ -37,4 +37,8 @@ DerivedData/
 /app/TFLAppUI.h
 /app/TFLSettingsUI.cpp
 /app/TFLSettingsUI.h
-
+Drivers/TNativeCalls.a
+Drivers/TNativeCalls.pg
+*.o
+Drivers/*.bin
+Drivers/*.pkg
