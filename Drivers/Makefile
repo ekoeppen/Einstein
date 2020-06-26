@@ -61,6 +61,7 @@ Einstein.rex : \
 	$(OBJDIR)/EinsteinVersionString.pkg \
 	$(OBJDIR)/EinsteinStartupDriver.pkg \
 	$(OBJDIR)/EinsteinSerialDriver.pkg \
+	$(OBJDIR)/EinsteinSerialVoyager.pkg \
 	$(OBJDIR)/EinsteinInTranslator.pkg \
 	$(OBJDIR)/EinsteinOutTranslator.pkg \
 	$(OBJDIR)/EinsteinNativeCalls.pkg \
@@ -89,7 +90,8 @@ EINSTEIN_SCREEN_DRIVER_OBJS := $(OBJDIR)/TMainDisplayDriver.impl.s.o $(OBJDIR)/T
 EINSTEIN_TABLET_DRIVER_OBJS := $(OBJDIR)/TMainTabletDriver.impl.s.o $(OBJDIR)/TMainTabletDriver.cpp.o $(OBJDIR)/TMainTabletDriverPrims.s.o $(RUNTIMEOBJS)
 EINSTEIN_VERSION_STRING_OBJS := $(OBJDIR)/TMainVersionString.impl.s.o $(OBJDIR)/TMainVersionString.cpp.o $(RUNTIMEOBJS)
 EINSTEIN_STARTUP_DRIVER_OBJS := $(OBJDIR)/TMainStartupDriver.impl.s.o $(OBJDIR)/TMainStartupDriver.cpp.o
-EINSTEIN_SERIAL_DRIVER_OBJS := $(OBJDIR)/TSerialChipVoyager.impl.s.o $(OBJDIR)/TSerialChipVoyager.cpp.o $(OBJDIR)/TSerialChipVoyagerPrims.s.o
+EINSTEIN_SERIAL_DRIVER_OBJS := $(OBJDIR)/TSerialChipEinstein.impl.s.o $(OBJDIR)/TSerialChipEinstein.cpp.o $(OBJDIR)/TSerialChipEinsteinPrims.s.o
+EINSTEIN_SERIAL_DRIVER_VOYAGER_OBJS := $(OBJDIR)/TSerialChipVoyager.impl.s.o $(OBJDIR)/TSerialChipVoyager.cpp.o $(OBJDIR)/TSerialChipVoyagerPrims.s.o
 EINSTEIN_IN_TRANSLATOR_OBJS := $(OBJDIR)/PEinsteinInTranslator.impl.s.o $(OBJDIR)/PEinsteinInTranslator.cpp.o  $(OBJDIR)/PEinsteinInTranslatorPrims.s.o
 EINSTEIN_OUT_TRANSLATOR_OBJS := $(OBJDIR)/PEinsteinOutTranslator.impl.s.o $(OBJDIR)/PEinsteinOutTranslator.cpp.o  $(OBJDIR)/PEinsteinOutTranslatorPrims.s.o $(RUNTIMEOBJS)
 EINSTEIN_NATIVE_CALLS_OBJS := $(OBJDIR)/TEinsteinNativeCalls.impl.s.o $(OBJDIR)/TEinsteinNativeCalls.cpp.o  $(OBJDIR)/TEinsteinNativeCallsPrims.s.o
@@ -122,6 +124,9 @@ $(OBJDIR)/EinsteinStartupDriver.elf : $(EINSTEIN_STARTUP_DRIVER_OBJS)
 	$(LINKER) $(LINKFLAGS) -Tprotocol.ld --version-script=protocol.map $^ -o $@
 
 $(OBJDIR)/EinsteinSerialDriver.elf : $(EINSTEIN_SERIAL_DRIVER_OBJS)
+	$(LINKER) $(LINKFLAGS) -Tprotocol.ld --version-script=protocol.map $^ -o $@
+
+$(OBJDIR)/EinsteinSerialVoyager.elf : $(EINSTEIN_SERIAL_DRIVER_VOYAGER_OBJS)
 	$(LINKER) $(LINKFLAGS) -Tprotocol.ld --version-script=protocol.map $^ -o $@
 
 $(OBJDIR)/EinsteinInTranslator.elf : $(EINSTEIN_IN_TRANSLATOR_OBJS)
