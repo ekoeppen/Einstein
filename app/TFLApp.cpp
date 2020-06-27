@@ -128,6 +128,7 @@
 #include "Emulator/TEmulator.h"
 #include "Emulator/TMemory.h"
 #include "Emulator/Log/TLog.h"
+#include "Emulator/Log/TStdOutLog.h"
 #include "Emulator/Log/TFileLog.h"
 #include "Emulator/Log/TBufferLog.h"
 #include "Emulator/Serial/TSerialPorts.h"
@@ -213,7 +214,8 @@ TFLApp::Run( int argc, char* argv[] )
     mLog = new TBufferLog();
 #else
     mFLSettings->useMonitor = 0;
-    mLog = new TFileLog("/tmp/Einstein_log.txt");
+    mLog = new TStdOutLog();
+    mLog->Disable();
 #endif
 
     int ramSize = mFLSettings->RAMSize;
@@ -258,7 +260,7 @@ TFLApp::Run( int argc, char* argv[] )
     InitScreen();
 
     InitSound();
-    
+
     InitNetwork();
 
     mEmulator = new TEmulator(mLog, mROMImage, theFlashPath,
@@ -762,7 +764,7 @@ void TFLApp::InitSerialPorts()
     // TODO: add preferences for the current driver, port and server address
     // Basic initialization of all serial ports
 
-    mEmulator->SerialPorts.Initialize(TSerialPorts::kTcpClientDriver,
+    mEmulator->SerialPorts.Initialize(TSerialPorts::kBasiliskIIDriver,
                                       TSerialPorts::kNullDriver,
                                       TSerialPorts::kNullDriver,
                                       TSerialPorts::kNullDriver );
@@ -859,7 +861,7 @@ void TFLApp::CreateScreenManager(
                                  int inPortraitWidth,
                                  int inPortraitHeight,
                                  bool inFullScreen)
-{	
+{
     if (::strcmp( inClass, "FL" ) == 0)
     {
         bool screenIsLandscape = true;
@@ -910,7 +912,7 @@ void TFLApp::CreateScreenManager(
 
  This may be a menu item or the Cllose button on the window decoration.
  */
-void TFLApp::quit_cb(Fl_Widget *, void *p) 
+void TFLApp::quit_cb(Fl_Widget *, void *p)
 {
     gApp->UserActionQuit();
 }
@@ -993,7 +995,7 @@ int main(int argc, char** argv )
 
 
 // ======================================================================= //
-// We build our computer (systems) the way we build our cities: over time, 
+// We build our computer (systems) the way we build our cities: over time,
 // without a plan, on top of ruins.
 //   -- Ellen Ullman
 // ======================================================================= //
