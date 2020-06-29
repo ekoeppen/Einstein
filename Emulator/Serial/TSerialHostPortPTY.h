@@ -1,5 +1,5 @@
 // ==============================
-// File:			TSerialHostPortDirect.h
+// File:			TSerialHostPortPTY.h
 // Project:			Einstein
 //
 // Copyright 2020 Eckhart Koeppen
@@ -19,8 +19,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // ==============================
 
-#ifndef _TSERIAL_HOST_PORT_DIRECT
-#define _TSERIAL_HOST_PORT_DIRECT
+#ifndef _TSERIAL_HOST_PORT_PTY
+#define _TSERIAL_HOST_PORT_PTY
 
 #include <K/Threads/TThread.h>
 #include <K/Misc/TCircleBuffer.h>
@@ -29,18 +29,17 @@
 ///
 /// Class to handle host emulated serial port
 ///
-class TSerialHostPortDirect
+class TSerialHostPortPTY
 	:
 		public TSerialHostPort
 {
 public:
-	TSerialHostPortDirect(
+	TSerialHostPortPTY(
 	    TLog *inLog,
 	    KUInt32 inLocation,
-		TEmulator *inEmulator,
-		const char *inPath = nullptr );
+		TEmulator *inEmulator);
 
-	virtual ~TSerialHostPortDirect();
+	virtual ~TSerialHostPortPTY();
 
 	virtual void PutByte(KUInt8 nextChar) override;
 	virtual KUInt8 GetByte() override;
@@ -64,16 +63,13 @@ public:
 
 	virtual KSInt32 WaitForAllSent() override;
 
+	void CreatePTY();
 	void Run();
 
-	void SetPath( const char* inPath )
-		{
-			mPath = inPath;
-		}
-
 protected:
-	const char* 	mPath;
-	int 			mFile;
+	char* 			mPath;
+	int 			mMaster;
+	int 			mSlave;
 	TThread* 		mIOThread;
 	TMutex*			mReadMutex;
 	TCircleBuffer*	mReadBuffer;
