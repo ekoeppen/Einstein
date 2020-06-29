@@ -695,9 +695,9 @@ void TFLApp::InitSound()
 #if TARGET_OS_WIN32
     mSoundManager = new TWaveSoundManager( mLog );
 #elif TARGET_OS_LINUX
-    mSoundManager = new TPulseAudioSoundManager( mLog );
+    mSoundManager = new TPulseAudioSoundManager( nullptr );
 #elif TARGET_OS_MAC
-    mSoundManager = new TCoreAudioSoundManager( mLog );
+    mSoundManager = new TCoreAudioSoundManager( nullptr );
 #else
 #   error Selected target OS support not implemented, or no target OS selected
 #endif
@@ -706,7 +706,7 @@ void TFLApp::InitSound()
 
 void TFLApp::InitNetwork() {
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
-    mNetworkManager = new TUsermodeNetwork(mLog);
+    mNetworkManager = new TUsermodeNetwork(nullptr);
 #else
 #   warn Please configure a network driver
     mNetworkManager = new TNullNetworkManager(mLog);
@@ -746,7 +746,7 @@ void TFLApp::InitScreen()
     else
         wMenuItemFullscreen->deactivate();
     wAppWindow->begin();
-    TFLScreenManager *flScreenManager = new TFLScreenManager(this, mLog, portraitWidth, portraitHeight, false, false);
+    TFLScreenManager *flScreenManager = new TFLScreenManager(this, nullptr, portraitWidth, portraitHeight, false, false);
     mNewtonScreen = flScreenManager->GetWidget();
     mScreenManager = flScreenManager;
     flScreenManager->GetWidget()->position(wToolbar->x(), wToolbar->y()+wToolbar->h());
@@ -895,7 +895,7 @@ void TFLApp::CreateScreenManager(
 #endif
 
         mScreenManager = new TFLScreenManager(this,
-                                              mLog,
+                                              nullptr,
                                               theWidth,
                                               theHeight,
                                               inFullScreen,

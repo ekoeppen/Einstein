@@ -126,26 +126,26 @@ TSerialPortManager *TSerialPorts::ReplaceDriver(EPortIndex inPort, EDriverID inD
 	}
 	switch (inDriverId) {
 		case kNullDriver:
-			currentDriver = new TBasicSerialPortManager(mLog, inPort);
+			currentDriver = new TBasicSerialPortManager(nullptr, inPort);
 			break;
 #if TARGET_OS_MAC || TARGET_OS_LINUX
 		case kPipesDriver:
-			currentDriver = new TPipesSerialPortManager(mLog, inPort);
+			currentDriver = new TPipesSerialPortManager(nullptr, inPort);
 			break;
 		case kPtyDriver:
-			currentDriver = new TPtySerialPortManager(mLog, inPort);
+			currentDriver = new TPtySerialPortManager(nullptr, inPort);
 			break;
 		case kBasiliskIIDriver:
-			currentDriver = new TBasiliskIISerialPortManager(mLog, inPort);
+			currentDriver = new TBasiliskIISerialPortManager(nullptr, inPort);
 			break;
 #endif
 #if TARGET_OS_MAC || TARGET_OS_ANDROID || TARGET_OS_LINUX || TARGET_OS_WIN32
 		case kTcpClientDriver:
-			currentDriver = new TTcpClientSerialPortManager(mLog, inPort);
+			currentDriver = new TTcpClientSerialPortManager(nullptr, inPort);
 			break;
 #endif
 		default:
-			currentDriver = new TBasicSerialPortManager(mLog, inPort);
+			currentDriver = new TBasicSerialPortManager(nullptr, inPort);
 			if (mLog)
     			mLog->FLogLine("ERROR: request for unsupported serial driver type %d on port %d\n", inDriverId, inPort);
 			else

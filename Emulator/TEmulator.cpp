@@ -77,8 +77,8 @@ TEmulator::TEmulator(
 			KUInt32 inRAMSize /* = 4194304 */ )
 	:
         SerialPorts( this, inLog ),
-		mMemory( inLog, inROMImage, inFlashPath, inRAMSize ),
-		mProcessor( inLog, &mMemory ),
+		mMemory( nullptr, inROMImage, inFlashPath, inRAMSize ),
+		mProcessor( nullptr, &mMemory ),
 		mInterruptManager( nil ),
 		mDMAManager( nil ),
 		mPlatformManager( nil ),
@@ -100,8 +100,8 @@ TEmulator::TEmulator(
 	branchDestCount.SetEmulator(this);
 	branchLinkDestCount.SetEmulator(this);
 #endif
-	mDMAManager = new TDMAManager(inLog, this, &mMemory, mInterruptManager);
-	mPlatformManager = new TPlatformManager( inLog, inScreenManager );
+	mDMAManager = new TDMAManager(nullptr, this, &mMemory, mInterruptManager);
+	mPlatformManager = new TPlatformManager( nullptr, inScreenManager );
 
 	mNewtonID[0] = kMyNewtonIDHigh;
 	mNewtonID[1] = kMyNewtonIDLow;
@@ -160,9 +160,9 @@ TEmulator::TEmulator(
 	branchDestCount.SetEmulator(this);
 	branchLinkDestCount.SetEmulator(this);
 #endif
-	mDMAManager = new TDMAManager(inLog, this, &mMemory, mInterruptManager);
-	mPlatformManager = new TPlatformManager( inLog, nil );
-	
+	mDMAManager = new TDMAManager(nullptr, this, &mMemory, mInterruptManager);
+	mPlatformManager = new TPlatformManager( nullptr, nil );
+
 	mNewtonID[0] = kMyNewtonIDHigh;
 	mNewtonID[1] = kMyNewtonIDLow;
 	
