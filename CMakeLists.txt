@@ -194,6 +194,11 @@ set ( sources
 	Emulator/Serial/TSerialPortManager.h
 	Emulator/Serial/TSerialPorts.cpp
 	Emulator/Serial/TSerialPorts.h
+	Emulator/Serial/TSerialHostPort.h
+	Emulator/Serial/TSerialHostPortDirect.cpp
+	Emulator/Serial/TSerialHostPortDirect.h
+	Emulator/Serial/TSerialHostPortPTY.cpp
+	Emulator/Serial/TSerialHostPortPTY.h
 	Emulator/Sound/TBufferedSoundManager.cpp
 	Emulator/Sound/TBufferedSoundManager.h
 	Emulator/Sound/TNullSoundManager.cpp

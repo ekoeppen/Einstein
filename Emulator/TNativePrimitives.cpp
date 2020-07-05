@@ -43,6 +43,8 @@
 #include "Emulator/Screen/TScreenManager.h"
 #include "Emulator/Network/TNetworkManager.h"
 #include "Emulator/Sound/TSoundManager.h"
+#include "Emulator/TInterruptManager.h"
+#include "Emulator/Serial/TSerialHostPortDirect.h"
 #if !TARGET_OS_MAC
 #include "Emulator/NativeCalls/TNativeCalls.h"
 #endif
@@ -2015,354 +2017,377 @@ TNativePrimitives::ExecuteTabletDriverNative( KUInt32 inInstruction )
 void
 TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 {
+	KUInt32 r = 0;
+	KUInt32 chip = mProcessor->GetRegister( 0 );
+
 	// Ignore calls for the Voyager chipset as it needs to be handled on
 	// the lower levels of the emulator.
 	if ((inInstruction & 0xFF) < 0x30)
 	{
-		mProcessor->SetRegister( 0, 0 );
+		r = -10000;
+	}
+	else if ((inInstruction & 0xFF) == 0x4C || (inInstruction & 0xFF) == 0x4D)
+	{
+		KUInt32 optionAddr = mProcessor->GetRegister( 1 );
+		KUInt32 opType;
+		KUInt32 location;
+		KUInt32 type;
+		mMemory->Read( optionAddr, opType );
+		mMemory->Read( optionAddr + 12, location );
+		mMemory->Read( optionAddr + 16, type );
+		if (mLog)
+		{
+			mLog->FLogLine( "TSerialChipEinstein::Process/InitByOption %08x %08x %08x", opType, location, type );
+		}
+
+		if (opType == 'eloc')
+		{
+			mMemory->WriteAligned (chip + 0x10, location);
+			TSerialHostPort *port = mEmulator->SerialPorts.ReplaceDriver(
+					location,
+					static_cast<TSerialPorts::EDriverID>( type ));
+			if (port == NULL)
+			{
+				r = -10000;
+			}
+		}
 	}
 	else
 	{
-		switch (inInstruction & 0xFF)
+		KUInt32 location;
+		mMemory->ReadAligned (chip + 0x10, location);
+		TSerialHostPort *port = mEmulator->SerialPorts.GetDriverFor( location );
+		if (mLog)
 		{
-			// TSerialChipEinstein primitives
+			mLog->FLogLine( "TSerialChipEinstein: %08x %08x %08x", chip, location, port);
+		}
+		if (port != NULL)
+		{
+			switch (inInstruction & 0xFF)
+			{
+				// TSerialChipEinstein primitives
+				case 0x33:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::InstallChipHandler" );
+					}
+					break;
 
-			case 0x31:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::New" );
-				}
-				break;
+				case 0x34:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::RemoveChipHandler" );
+					}
+					break;
 
-			case 0x32:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::Delete" );
-				}
-				break;
+				case 0x35:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::PutByte" );
+					}
+					port->PutByte( mProcessor->GetRegister( 1 ));
+					break;
 
-			case 0x33:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::InstallChipHandler" );
-				}
-				break;
+				case 0x36:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::ResetTxBEmpty" );
+					}
+					port->ResetTxBEmpty();
+					break;
 
-			case 0x34:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::RemoveChipHandler" );
-				}
-				break;
+				case 0x37:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetByte" );
+					}
+					r = port->GetByte();
+					break;
 
-			case 0x35:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::PutByte" );
-				}
-				break;
+				case 0x38:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::TxBufEmpty" );
+					}
+					r = port->TxBufEmpty();
+					break;
 
-			case 0x36:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ResetTxBEmpty" );
-				}
-				break;
+				case 0x39:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::RxBufFull" );
+					}
+					r = port->RxBufFull();
+					break;
 
-			case 0x37:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetByte" );
-				}
-				break;
+				case 0x3A:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetRxErrorStatus" );
+					}
+					r = -10000;
+					break;
 
-			case 0x38:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::TxBufEmpty" );
-				}
-				break;
+				case 0x3B:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetSerialStatus" );
+					}
+					r = port->GetSerialStatus();
+					break;
 
-			case 0x39:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::RxBufFull" );
-				}
-				break;
+				case 0x3C:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::ResetSerialStatus" );
+					}
+					port->ResetSerialStatus();
+					break;
 
-			case 0x3A:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetRxErrorStatus" );
-				}
-				break;
+				case 0x3D:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetSerialOutputs" );
+					}
+					port->SetSerialOutputs( mProcessor->GetRegister( 1 ) );
+					break;
 
-			case 0x3B:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetSerialStatus" );
-				}
-				break;
+				case 0x3E:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::ClearSerialOutputs" );
+					}
+					port->ClearSerialOutputs( mProcessor->GetRegister( 1 ) );
+					break;
 
-			case 0x3C:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ResetSerialStatus" );
-				}
-				break;
+				case 0x3F:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetSerialOutputs" );
+					}
+					r = port->GetSerialOutputs();
+					break;
 
-			case 0x3D:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetSerialOutputs" );
-				}
-				break;
+				case 0x40:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::PowerOff" );
+					}
+					break;
 
-			case 0x3E:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ClearSerialOutputs" );
-				}
-				break;
+				case 0x41:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::PowerOn" );
+					}
+					break;
 
-			case 0x3F:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetSerialOutputs" );
-				}
-				break;
+				case 0x42:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::PowerIsOn" );
+					}
+					r = 1;
+					break;
 
-			case 0x40:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::PowerOff" );
-				}
-				break;
+				case 0x43:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetInterruptEnable" );
+					}
+					break;
 
-			case 0x41:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::PowerOn" );
-				}
-				break;
+				case 0x44:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::Reset" );
+					}
+					port->Reset();
+					break;
 
-			case 0x42:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::PowerIsOn" );
-				}
-				break;
+				case 0x45:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetBreak" );
+					}
+					port->SetBreak( mProcessor->GetRegister( 1 ) );
+					break;
 
-			case 0x43:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetInterruptEnable" );
-				}
-				break;
+				case 0x46:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetSpeed" );
+					}
+					port->SetSpeed( mProcessor->GetRegister( 1 ) );
+					break;
 
-			case 0x44:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::Reset" );
-				}
+				case 0x47:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetIOParms" );
+					}
+					break;
 
-			case 0x45:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetBreak" );
-				}
-				break;
+				case 0x48:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::Reconfigure" );
+					}
+					port->Reconfigure();
+					break;
 
-			case 0x46:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetSpeed" );
-				}
-				break;
+				case 0x49:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::Init" );
+					}
+					break;
 
-			case 0x47:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetIOParms" );
-				}
-				break;
+				case 0x4A:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::CardRemoved" );
+					}
+					break;
 
-			case 0x48:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::Reconfigure" );
-				}
-				break;
+				case 0x4B:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetFeatures" );
+					}
+					r = port->GetFeatures();
+					break;
 
-			case 0x49:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::Init" );
-				}
-				break;
+				case 0x4E:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetSerialMode" );
+					}
+					port->SetSerialMode( mProcessor->GetRegister( 1 ) );
+					break;
 
-			case 0x4A:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::CardRemoved" );
-				}
-				break;
+				case 0x4F:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SysEventNotify" );
+					}
+					break;
 
-			case 0x4B:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetFeatures" );
-				}
-				break;
+				case 0x50:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetTxDTransceiverEnable" );
+					}
+					break;
 
-			case 0x4C:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::InitByOption" );
-				}
-				break;
+				case 0x51:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::GetByteAndStatus" );
+					}
+					break;
 
-			case 0x4D:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ProcessOption" );
-				}
-				break;
+				case 0x52:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetIntSourceEnable" );
+					}
+					break;
 
-			case 0x4E:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetSerialMode" );
-				}
-				break;
+				case 0x53:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::AllSent" );
+					}
+					r = port->AllSent();
+					break;
 
-			case 0x4F:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SysEventNotify" );
-				}
-				break;
+				case 0x54:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::ConfigureForOutput" );
+					}
+					break;
 
-			case 0x50:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetTxDTransceiverEnable" );
-				}
-				break;
+				case 0x55:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::InitTxDMA" );
+					}
+					break;
 
-			case 0x51:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetByteAndStatus" );
-				}
-				break;
+				case 0x56:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::InitRxDMA" );
+					}
+					break;
 
-			case 0x52:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetIntSourceEnable" );
-				}
-				break;
+				case 0x57:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::TxDMAControl" );
+					}
+					break;
 
-			case 0x53:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::AllSent" );
-				}
-				break;
+				case 0x58:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::RxDMAControl" );
+					}
+					break;
 
-			case 0x54:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ConfigureForOutput" );
-				}
-				break;
+				case 0x59:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SetSDLCAddress" );
+					}
+					break;
 
-			case 0x55:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::InitTxDMA" );
-				}
-				break;
+				case 0x5A:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::ReEnableReceiver" );
+					}
+					break;
 
-			case 0x56:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::InitRxDMA" );
-				}
-				break;
+				case 0x5B:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::LinkIsFree" );
+					}
+					break;
 
-			case 0x57:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::TxDMAControl" );
-				}
-				break;
+				case 0x5C:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::SendControlPacket" );
+					}
+					break;
 
-			case 0x58:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::RxDMAControl" );
-				}
-				break;
+				case 0x5D:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::WaitForPacket" );
+					}
+					break;
 
-			case 0x59:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SetSDLCAddress" );
-				}
-				break;
+				case 0x5E:
+					if (mLog)
+					{
+						mLog->LogLine( "TSerialChipEinstein::WaitForAllSent" );
+					}
+					break;
 
-			case 0x5A:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::ReEnableReceiver" );
-				}
-				break;
-
-			case 0x5B:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::LinkIsFree" );
-				}
-				break;
-
-			case 0x5C:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::SendControlPacket" );
-				}
-				break;
-
-			case 0x5D:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::WaitForPacket" );
-				}
-				break;
-
-			case 0x5E:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::WaitForAllSent" );
-				}
-				break;
-
-			case 0x5F:
-				if (mLog)
-				{
-					mLog->LogLine( "TSerialChipEinstein::GetInterruptStatus" );
-				}
-				break;
-
-			default:
-				if (mLog)
-				{
-					mLog->FLogLine(
-							"Unknown serial driver native primitive %.8X (pc=%.8X)",
-							(unsigned int) inInstruction,
-							(unsigned int) mProcessor->GetRegister(15) );
-				}
+				default:
+					if (mLog)
+					{
+						mLog->FLogLine(
+								"Unknown serial driver native primitive %.8X (pc=%.8X)",
+								(unsigned int) inInstruction,
+								(unsigned int) mProcessor->GetRegister(15) );
+					}
+			}
 		}
 	}
 

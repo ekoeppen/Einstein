@@ -25,37 +25,77 @@
 #include <OptionArray.h>
 #include <HALOptions.h>
 #include <CommErrors.h>
+#include "K/Misc/RelocHack.h"
 
 PROTOCOL_IMPL_SOURCE_MACRO(TSerialChipEinstein)	// Magic stuff, do not touch
 
-// -------------------------------------------------------------------------- //
-// Constantes
-// -------------------------------------------------------------------------- //
+typedef long (*InterruptHandlerProcPtr)(void*);
 
-// -------------------------------------------------------------------------- //
-//  * New( void )
-// -------------------------------------------------------------------------- //
-TSerialChip*
-TSerialChipEinstein::New( void )
+InterruptObject* RegisterInterrupt(
+	ULong inInterruptMask,
+	void* inCookie,
+	InterruptHandlerProcPtr inHandler,
+	ULong inFlags);
+void DeregisterInterrupt(InterruptObject*);
+
+extern "C" long EnableInterrupt(InterruptObject*, ULong);
+extern "C" long DisableInterrupt(InterruptObject*);
+extern "C" long ClearInterrupt(InterruptObject*);
+
+#define kCMOSerialEinsteinLoc 'eloc'
+
+THMOSerialEinsteinHardware::THMOSerialEinsteinHardware()
 {
+	SetAsOption(kCMOSerialEinsteinLoc);
+	SetLength(sizeof(THMOSerialEinsteinHardware));
+}
+
+NewtonErr
+TSerialChipEinstein::HandleInterrupt()
+{
+	SerialStatus intStatus = GetSerialStatus();
+	if (intStatus & kSerialTxBufferEmpty) {
+		(fIntHandlers.TxBEmptyIntHandler)(fSerialTool);
+	}
+	if (intStatus & kSerialRxCharAvailable) {
+		(fIntHandlers.RxCAvailIntHandler)(fSerialTool);
+	}
+	return noErr;
+}
+
+TSerialChip*
+TSerialChipEinstein::New(void)
+{
+	fInterruptObject = RegisterInterrupt(0x00100000,
+			this,
+			(InterruptHandlerProcPtr) &TSerialChipEinstein::HandleInterrupt,
+			0);
+	EnableInterrupt(fInterruptObject, 0);
+	fLocationID = 0;
+	fInterruptObject = NULL;
+	RemoveChipHandler(NULL);
 	return this;
 }
 
-// -------------------------------------------------------------------------- //
-//  * Delete( void )
-// -------------------------------------------------------------------------- //
 void
 TSerialChipEinstein::Delete( void )
 {
+	DeregisterInterrupt(fInterruptObject);
 }
 
-// -------------------------------------------------------------------------- //
-//  * InitByOption( TOption* )
-// -------------------------------------------------------------------------- //
 NewtonErr
-TSerialChipEinstein::InitByOption( TOption* inOption )
+TSerialChipEinstein::InstallChipHandler(void* serialTool, SCCChannelInts* intHandlers)
 {
-	mLocationID = ((THMOSerialEinsteinHardware*) inOption)->fLocationID;
+	fSerialTool = serialTool;
+	memcpy(&fIntHandlers, intHandlers, sizeof(fIntHandlers));
+	return noErr;
+}
+
+NewtonErr
+TSerialChipEinstein::RemoveChipHandler(void* serialTool)
+{
+	fSerialTool = NULL;
+	memset(&fIntHandlers, 0, sizeof(fIntHandlers));
 	return noErr;
 }
 

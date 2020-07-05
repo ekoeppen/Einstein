@@ -41,6 +41,8 @@
 
 #include "Emulator/Serial/TBasicSerialPortManager.h"
 #if TARGET_OS_MAC || TARGET_OS_LINUX
+#include "Emulator/Serial/TSerialHostPortDirect.h"
+#include "Emulator/Serial/TSerialHostPortPTY.h"
 #include "Emulator/Serial/TPipesSerialPortManager.h"
 #include "Emulator/Serial/TPtySerialPortManager.h"
 #include "Emulator/Serial/TBasiliskIISerialPortManager.h"
@@ -83,6 +85,11 @@ TSerialPortManager *TSerialPorts::GetDriverFor(EPortIndex ix)
 {
 	assert(ix>=0 && ix<4);
 	return mDriver[ix];
+}
+
+TSerialHostPort *TSerialPorts::GetDriverFor(KUInt32 location)
+{
+	return mHostPorts[location];
 }
 
 /**
@@ -158,6 +165,48 @@ TSerialPortManager *TSerialPorts::ReplaceDriver(EPortIndex inPort, EDriverID inD
 					   mEmulator->GetMemory());
 
 	return currentDriver;
+}
+
+TSerialHostPort* TSerialPorts::ReplaceDriver(KUInt32 inLocation, EDriverID inDriver)
+{
+#if TARGET_OS_MAC
+	const char* device = "/dev/cu.Repleo-CP2102-0001";
+#elif TARGET_OS_LINUX
+	const char* device = "/dev/ttyUSB0";
+#else
+	const char* device = "COM1:"
+#endif
+	TSerialHostPort *port;
+	printf ("[####] Location: %08x driver %d\n", inLocation, inDriver);
+	switch (inDriver)
+	{
+		case kDirectDriver:
+			port = new TSerialHostPortDirect(mLog, inLocation, mEmulator, device);
+			break;
+		case kPtyDriver:
+			port = new TSerialHostPortPTY(mLog, inLocation, mEmulator);
+			break;
+		default:
+			port = nullptr;
+			break;
+	}
+
+	if (port != nullptr)
+	{
+		mHostPorts[inLocation] = port;
+	}
+	else
+	{
+		if (mLog)
+		{
+			mLog->FLogLine("ERROR: request for unsupported serial driver type %d on port %08x\n", inDriver, inLocation);
+		}
+		else
+		{
+			fprintf(stderr, "ERROR: request for unsupported serial driver type %d on port %08x\n", inDriver, inLocation);
+		}
+	}
+	return port;
 }
 
 KUInt32 TSerialPorts::NDrivers = kNDriverID;
