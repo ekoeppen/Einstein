@@ -35,6 +35,7 @@
 class TLog;
 class TEmulator;
 class TSerialPortManager;
+class TSerialHostPort;
 
 
 /**
@@ -62,6 +63,7 @@ public:
 		kPtyDriver,
 		kBasiliskIIDriver,
 		kTcpClientDriver,
+		kDirectDriver,
 		kNDriverID
 	};
 
@@ -91,6 +93,9 @@ public:
 	// Return a driver for a given index
 	TSerialPortManager *GetDriverFor(EPortIndex ix);
 
+	// Return the driver for a dynamically allocated port
+	TSerialHostPort *GetDriverFor(KUInt32 location);
+
 	// Initialize all drivers and run them
 	void Initialize(EDriverID extrDriver,
 					EDriverID infrDriver,
@@ -99,6 +104,9 @@ public:
 
 	// Replace an existing driver with a new driver
 	TSerialPortManager *ReplaceDriver(EPortIndex inPort, EDriverID inDriverId);
+
+	// Add a driver for a dynamically allocated port
+	TSerialHostPort *ReplaceDriver(KUInt32 inLocation, EDriverID inDriverId);
 
 	// NewtonScript call to return all driver names
 	static NewtRef NSGetDriverNames(TNewt::RefArg arg);
@@ -121,6 +129,7 @@ private:
 	TLog				*mLog = nullptr;
 	TEmulator 			*mEmulator = nullptr;
 	std::function<void(int)> mPortChangedCallback;
+	std::map<KUInt32, TSerialHostPort*> mHostPorts;
 
 };
 

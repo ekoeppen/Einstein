@@ -93,6 +93,13 @@
 		2389E98F1A1E4D4A0001A8C5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F1CAFCF8124200C100A0382E /* CoreGraphics.framework */; };
 		2389E9911A1E4D4A0001A8C5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C97C7E1B124282A600CDCD05 /* Foundation.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		A78AB258277CABBF0047B122 /* TSerialHostPortPTY.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB254277CABBF0047B122 /* TSerialHostPortPTY.cpp */; };
+		A78AB259277CABBF0047B122 /* TSerialHostPortDirect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB257277CABBF0047B122 /* TSerialHostPortDirect.cpp */; };
+		A78AB25A277CAE170047B122 /* TSerialHostPortDirect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB257277CABBF0047B122 /* TSerialHostPortDirect.cpp */; };
+		A78AB25B277CAE1C0047B122 /* TSerialHostPortPTY.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB254277CABBF0047B122 /* TSerialHostPortPTY.cpp */; };
+		A78AB25D277CAE2A0047B122 /* TSerialHostPortPTY.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB254277CABBF0047B122 /* TSerialHostPortPTY.cpp */; };
+		A78AB25F277CAE2F0047B122 /* TSerialHostPortDirect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A78AB257277CABBF0047B122 /* TSerialHostPortDirect.cpp */; };
+		A78AB262277CB0DD0047B122 /* TCocoaPathHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F19F1C281E5B574000E8C9BE /* TCocoaPathHelper.mm */; };
 		C901E51A132655D50074513E /* UUTF16CStr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C99E334F111B7570002165EC /* UUTF16CStr.cpp */; };
 		C901E51D132655E00074513E /* UUTF16Conv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C99E334D111B7570002165EC /* UUTF16Conv.cpp */; };
 		C901E5221326560B0074513E /* TStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C99E3333111B7570002165EC /* TStream.cpp */; };
@@ -538,6 +545,11 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107320486CEB800E47090 /* Einstein.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Einstein.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A78AB253277CABBF0047B122 /* TSerialHostPortDirect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSerialHostPortDirect.h; sourceTree = "<group>"; };
+		A78AB254277CABBF0047B122 /* TSerialHostPortPTY.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSerialHostPortPTY.cpp; sourceTree = "<group>"; };
+		A78AB255277CABBF0047B122 /* TSerialHostPort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSerialHostPort.h; sourceTree = "<group>"; };
+		A78AB256277CABBF0047B122 /* TSerialHostPortPTY.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSerialHostPortPTY.h; sourceTree = "<group>"; };
+		A78AB257277CABBF0047B122 /* TSerialHostPortDirect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSerialHostPortDirect.cpp; sourceTree = "<group>"; };
 		C92FC717209374B500EF4BB1 /* TPipesSerialPortManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TPipesSerialPortManager.h; sourceTree = "<group>"; };
 		C92FC71B209374B600EF4BB1 /* TPipesSerialPortManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TPipesSerialPortManager.cpp; sourceTree = "<group>"; };
 		C92FD821242D50CF00D18F58 /* TSerialPorts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSerialPorts.cpp; sourceTree = "<group>"; };
@@ -1622,6 +1634,11 @@
 		C99E34A3111B7C08002165EC /* Serial */ = {
 			isa = PBXGroup;
 			children = (
+				A78AB255277CABBF0047B122 /* TSerialHostPort.h */,
+				A78AB257277CABBF0047B122 /* TSerialHostPortDirect.cpp */,
+				A78AB253277CABBF0047B122 /* TSerialHostPortDirect.h */,
+				A78AB254277CABBF0047B122 /* TSerialHostPortPTY.cpp */,
+				A78AB256277CABBF0047B122 /* TSerialHostPortPTY.h */,
 				C92FD821242D50CF00D18F58 /* TSerialPorts.cpp */,
 				C92FD822242D50CF00D18F58 /* TSerialPorts.h */,
 				C99E34A7111B7C08002165EC /* TSerialPortManager.cpp */,
@@ -2198,6 +2215,7 @@
 			files = (
 				C99E317B111B73A1002165EC /* TMonitor.cpp in Sources */,
 				C99E317C111B73A1002165EC /* TSymbolList.cpp in Sources */,
+				A78AB259277CABBF0047B122 /* TSerialHostPortDirect.cpp in Sources */,
 				C935F783209CD68900351905 /* TBasiliskIISerialPortManager.cpp in Sources */,
 				C99E317D111B73A1002165EC /* UDisasm.cpp in Sources */,
 				C99E3391111B7570002165EC /* TCondVar.cpp in Sources */,
@@ -2296,6 +2314,7 @@
 				C901E52E1326566D0074513E /* TIOException.cpp in Sources */,
 				F156B8161CFA48BD004661E8 /* TCocoaFileManager.mm in Sources */,
 				C901E52F1326566F0074513E /* TMemError.cpp in Sources */,
+				A78AB258277CABBF0047B122 /* TSerialHostPortPTY.cpp in Sources */,
 				C901E530132656710074513E /* TEOFException.cpp in Sources */,
 				C9BE33D0133E64F60052EA2F /* TJITPerformance.cpp in Sources */,
 				C9D54E1415FA23E700D91131 /* TFiber.cpp in Sources */,
@@ -2327,11 +2346,13 @@
 				DA4BA42C1A3A02FD002BDB80 /* TJITGeneric.cpp in Sources */,
 				DAD09650246F613000CADBF3 /* TJITGeneric_HalfwordAndSignedDataTransferReg.cpp in Sources */,
 				DA4BA4311A3A02FD002BDB80 /* TJITGeneric_DataProcessingPSRTransfer_MoveOp.cpp in Sources */,
+				A78AB25D277CAE2A0047B122 /* TSerialHostPortPTY.cpp in Sources */,
 				DA4BA43A1A3A02FD002BDB80 /* TJITGeneric_Test.cpp in Sources */,
 				DA4BA4221A3A028C002BDB80 /* TJITPerformance.cpp in Sources */,
 				DA4BA4671A3A3800002BDB80 /* TNullSoundManager.cpp in Sources */,
 				C9869C9D25FC2B9E0061F7E6 /* CRC32.cpp in Sources */,
 				DA52C8971A409164008A17D0 /* TJITGenericROMPatch.cpp in Sources */,
+				A78AB25F277CAE2F0047B122 /* TSerialHostPortDirect.cpp in Sources */,
 				DA4BA4591A3A03F8002BDB80 /* TCircleBuffer.cpp in Sources */,
 				DA4BA42E1A3A02FD002BDB80 /* TJITGeneric_DataProcessingPSRTransfer.cpp in Sources */,
 				DA4BA4191A3A028C002BDB80 /* TEmulator.cpp in Sources */,
@@ -2342,6 +2363,7 @@
 				DA4BA4391A3A02FD002BDB80 /* TJITGeneric_SingleDataTransfer.cpp in Sources */,
 				DAD09655246F61B400CADBF3 /* TPtySerialPortManager.cpp in Sources */,
 				DA4BA4561A3A03EF002BDB80 /* TIOException.cpp in Sources */,
+				A78AB262277CB0DD0047B122 /* TCocoaPathHelper.mm in Sources */,
 				DA4BA4181A3A028C002BDB80 /* TFlash.cpp in Sources */,
 				DA4BA42F1A3A02FD002BDB80 /* TJITGeneric_DataProcessingPSRTransfer_ArithmeticOp.cpp in Sources */,
 				DA4BA41E1A3A028C002BDB80 /* TROMImage.cpp in Sources */,
@@ -2430,6 +2452,7 @@
 				DA4FF13E1A35EBF800092B5A /* TSerialPortManager.cpp in Sources */,
 				DA4FF11E1A35EAF600092B5A /* TJITGeneric_DataProcessingPSRTransfer_MoveOp.cpp in Sources */,
 				DA4FF1481A35EC4300092B5A /* UDisasm.cpp in Sources */,
+				A78AB25B277CAE1C0047B122 /* TSerialHostPortPTY.cpp in Sources */,
 				DA4FF10C1A35EA8800092B5A /* TInterruptManager.cpp in Sources */,
 				DA4FF1301A35EB4900092B5A /* TMappedFile.cpp in Sources */,
 				DA4FF11D1A35EAF600092B5A /* TJITGeneric_DataProcessingPSRTransfer_LogicalOp.cpp in Sources */,
@@ -2450,6 +2473,7 @@
 				DA4FF1011A35E76400092B5A /* UMemoryTests.cpp in Sources */,
 				DA4FF1001A35E76400092B5A /* UHostInfoTests.cpp in Sources */,
 				DA4FF1221A35EAF600092B5A /* TJITGeneric_Multiply.cpp in Sources */,
+				A78AB25A277CAE170047B122 /* TSerialHostPortDirect.cpp in Sources */,
 				DA4FF1251A35EAF600092B5A /* TJITGeneric_SingleDataSwap.cpp in Sources */,
 				DA4FF12D1A35EB3D00092B5A /* TNE2000Card.cpp in Sources */,
 				DA4FF1091A35E9E600092B5A /* UUTF16Conv.cpp in Sources */,

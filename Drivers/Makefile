@@ -20,7 +20,7 @@ OBJCOPY         := arm-none-eabi-objcopy
 
 REX             := Rex
 
-MACHINEFLAGS    := -march=armv3 -mbig-endian
+MACHINEFLAGS    := -march=armv4 -mbig-endian
 ASFLAGS         := ${MACHINEFLAGS}
 CODEGENFLAGS    := -nostdinc -fPIC -fdata-sections -ffunction-sections -O3 -Os
 DEFINES         := -D__arm -DhasPCMCIA -DforARM -DNO_ERRNO_H -DSTDC -DTARGET_OS_NEWTON
@@ -90,7 +90,7 @@ EINSTEIN_SCREEN_DRIVER_OBJS := $(OBJDIR)/TMainDisplayDriver.impl.s.o $(OBJDIR)/T
 EINSTEIN_TABLET_DRIVER_OBJS := $(OBJDIR)/TMainTabletDriver.impl.s.o $(OBJDIR)/TMainTabletDriver.cpp.o $(OBJDIR)/TMainTabletDriverPrims.s.o $(RUNTIMEOBJS)
 EINSTEIN_VERSION_STRING_OBJS := $(OBJDIR)/TMainVersionString.impl.s.o $(OBJDIR)/TMainVersionString.cpp.o $(RUNTIMEOBJS)
 EINSTEIN_STARTUP_DRIVER_OBJS := $(OBJDIR)/TMainStartupDriver.impl.s.o $(OBJDIR)/TMainStartupDriver.cpp.o
-EINSTEIN_SERIAL_DRIVER_OBJS := $(OBJDIR)/TSerialChipEinstein.impl.s.o $(OBJDIR)/TSerialChipEinstein.cpp.o $(OBJDIR)/TSerialChipEinsteinPrims.s.o
+EINSTEIN_SERIAL_DRIVER_OBJS := $(OBJDIR)/TSerialChipEinstein.impl.s.o $(OBJDIR)/TSerialChipEinstein.cpp.o $(OBJDIR)/TSerialChipEinsteinPrims.s.o $(RUNTIMEOBJS)
 EINSTEIN_SERIAL_DRIVER_VOYAGER_OBJS := $(OBJDIR)/TSerialChipVoyager.impl.s.o $(OBJDIR)/TSerialChipVoyager.cpp.o $(OBJDIR)/TSerialChipVoyagerPrims.s.o
 EINSTEIN_IN_TRANSLATOR_OBJS := $(OBJDIR)/PEinsteinInTranslator.impl.s.o $(OBJDIR)/PEinsteinInTranslator.cpp.o  $(OBJDIR)/PEinsteinInTranslatorPrims.s.o
 EINSTEIN_OUT_TRANSLATOR_OBJS := $(OBJDIR)/PEinsteinOutTranslator.impl.s.o $(OBJDIR)/PEinsteinOutTranslator.cpp.o  $(OBJDIR)/PEinsteinOutTranslatorPrims.s.o $(RUNTIMEOBJS)
