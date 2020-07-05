@@ -501,6 +501,7 @@
 		F1E2C2A51E5B5D7A0074F2D3 /* TPathHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F1E2C2A11E5B5D7A0074F2D3 /* TPathHelper.cpp */; };
 		F1E2C2A61E5B9B350074F2D3 /* TCocoaPathHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F19F1C281E5B574000E8C9BE /* TCocoaPathHelper.mm */; };
 		F1E2C2A71E5B9B410074F2D3 /* TBasicSerialPortManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C945F6711E53180C002505E9 /* TBasicSerialPortManager.cpp */; };
+		F8E4E9F124B24D980094E985 /* TSerialHostPortDirect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F8E4E9F024B24D970094E985 /* TSerialHostPortDirect.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -966,6 +967,9 @@
 		F1CAFBF41241F7E600A0382E /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		F1CAFCF8124200C100A0382E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		F1E2C2A11E5B5D7A0074F2D3 /* TPathHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TPathHelper.cpp; sourceTree = "<group>"; };
+		F8E4E9EF24B24D970094E985 /* TSerialHostPortDirect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSerialHostPortDirect.h; sourceTree = "<group>"; };
+		F8E4E9F024B24D970094E985 /* TSerialHostPortDirect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSerialHostPortDirect.cpp; sourceTree = "<group>"; };
+		F8E4E9F224B24DC10094E985 /* TSerialHostPort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSerialHostPort.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1631,6 +1635,9 @@
 				C935F781209CD67300351905 /* TBasiliskIISerialPortManager.h */,
 				C99656A024258CC900D216A2 /* TTcpClientSerialPortManager.cpp */,
 				C996569F24258CC900D216A2 /* TTcpClientSerialPortManager.h */,
+				F8E4E9F224B24DC10094E985 /* TSerialHostPort.h */,
+				F8E4E9F024B24D970094E985 /* TSerialHostPortDirect.cpp */,
+				F8E4E9EF24B24D970094E985 /* TSerialHostPortDirect.h */,
 			);
 			path = Serial;
 			sourceTree = "<group>";
@@ -2200,6 +2207,7 @@
 				C99E34D0111B7C08002165EC /* TCocoaROMDumperController.mm in Sources */,
 				DA4BA4701A3A3B78002BDB80 /* TNullScreenManager.cpp in Sources */,
 				C99E34D1111B7C08002165EC /* TCocoaSetupController.mm in Sources */,
+				F8E4E9F124B24D980094E985 /* TSerialHostPortDirect.cpp in Sources */,
 				C99E34D8111B7C08002165EC /* THostInfo.cpp in Sources */,
 				C99E34DE111B7C08002165EC /* TJITGeneric.cpp in Sources */,
 				C99E34DF111B7C08002165EC /* TJITGeneric_BlockDataTransfer.cpp in Sources */,

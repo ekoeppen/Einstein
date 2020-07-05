@@ -26,18 +26,15 @@
 
 #include "SerialChipV2.h"
 
+struct InterruptObject;
+
 class THMOSerialEinsteinHardware : public TOption
 {
-// 76736877	'vshw'
-// 00000018	length
-// 0C000100	flags
 public:
-	ULong	fBaseAddr;		// 0F1C0000	base addr
-	ULong	fUnknown_10;	// 00000000	?
-	ULong	fLocationID;	// 65787472	location id ('extr')
-	ULong	fUnknown_18;	// 00020000	?
-	ULong	fUnknown_1C;	// 00000000	?
-	ULong	fUnknown_20;	// 00000000	?
+	THMOSerialEinsteinHardware();
+
+	ULong	fLocationID;	// synthetic hardware location
+	ULong	fType;			// host side driver type
 };
 
 ///
@@ -143,7 +140,12 @@ public:
 	NewtonErr			WaitForAllSent(); 			// delay until all bytes have been sent
 
 private:
-	ULong				mLocationID;
+	NewtonErr			HandleInterrupt();
+
+	ULong				fLocationID;
+	InterruptObject*	fInterruptObject;
+	void*				fSerialTool;
+	SCCChannelInts 		fIntHandlers;
 };
 
 #endif
