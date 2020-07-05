@@ -42,6 +42,7 @@
 #include "TARMProcessor.h"
 #include "TInterruptManager.h"
 #include "Screen/TScreenManager.h"
+#include "TInterruptManager.h"
 #include "Serial/TSerialHostPortDirect.h"
 #include "Network/TNetworkManager.h"
 #include "Sound/TSoundManager.h"

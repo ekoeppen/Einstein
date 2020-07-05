@@ -36,7 +36,7 @@ InterruptObject* RegisterInterrupt(
 	void* inCookie,
 	InterruptHandlerProcPtr inHandler,
 	ULong inFlags);
-Long DeregisterInterrupt(InterruptObject*);
+void DeregisterInterrupt(InterruptObject*);
 
 extern "C" long EnableInterrupt(InterruptObject*, ULong);
 extern "C" long DisableInterrupt(InterruptObject*);
@@ -53,7 +53,7 @@ THMOSerialEinsteinHardware::THMOSerialEinsteinHardware()
 NewtonErr
 TSerialChipEinstein::HandleInterrupt()
 {
-	ULong intStatus = GetSerialStatus();
+	SerialStatus intStatus = GetSerialStatus();
 	if (intStatus & kSerialTxBufferEmpty) {
 		(fIntHandlers.TxBEmptyIntHandler)(fSerialTool);
 	}
@@ -68,7 +68,7 @@ TSerialChipEinstein::New(void)
 {
 	fInterruptObject = RegisterInterrupt(0x00100000,
 			this,
-			(InterruptHandlerProcPtr) RelocFuncPtr(&TSerialChipEinstein::HandleInterrupt),
+			(InterruptHandlerProcPtr) &TSerialChipEinstein::HandleInterrupt,
 			0);
 	EnableInterrupt(fInterruptObject, 0);
 	fLocationID = 0;
