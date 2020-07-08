@@ -18,7 +18,8 @@ AS              := arm-none-eabi-as
 LINKER          := arm-none-eabi-ld
 OBJCOPY         := arm-none-eabi-objcopy
 
-REX             := Rex
+REX             ?= Rex
+SETFILE         ?= SetFile
 
 MACHINEFLAGS    := -march=armv4 -mbig-endian
 ASFLAGS         := ${MACHINEFLAGS}
@@ -73,7 +74,7 @@ Einstein.rex : \
 $(OBJDIR)/%.pkg : $(OBJDIR)/%.elf
 	rm -f $@
 	ELFtoPKG -o $@ $(patsubst $(OBJDIR)/%,%,$(@:.pkg=:Einstein)) -protocol $< -autoLoad -autoRemove
-	SetFile -t 'pkg ' -c 'pkgX' $@
+	$(SETFILE) -t 'pkg ' -c 'pkgX' $@
 
 $(OBJDIR)/%.cpp.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(NEWTONINCLUDES) -I.. -c $< -o $@
