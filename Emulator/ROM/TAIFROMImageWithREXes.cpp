@@ -88,9 +88,9 @@ TAIFROMImageWithREXes::TAIFROMImageWithREXes(const char* inAIFPath,
     } else {
         // if we don't have a REX file, get the date when the app was compiled
         struct tm appCompileTime = { };
-        appCompileTime.tm_year = atoi(COMPILE_TIME_YYYY);
-        appCompileTime.tm_mon = atoi(COMPILE_TIME_MM);
-        appCompileTime.tm_mday = atoi(COMPILE_TIME_DD);
+        appCompileTime.tm_year = COMPILE_TIME_YYYY;
+        appCompileTime.tm_mon = COMPILE_TIME_MM;
+        appCompileTime.tm_mday = COMPILE_TIME_DD;
         theModDate = ::mktime(&appCompileTime);
     }
 
