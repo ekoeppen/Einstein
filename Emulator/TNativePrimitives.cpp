@@ -2083,7 +2083,7 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 				case 0x35:
 					if (mLog)
 					{
-						mLog->LogLine( "TSerialChipEinstein::PutByte" );
+						mLog->FLogLine( "TSerialChipEinstein::PutByte %02x", mProcessor->GetRegister( 1 ) );
 					}
 					port->PutByte( mProcessor->GetRegister( 1 ));
 					break;
