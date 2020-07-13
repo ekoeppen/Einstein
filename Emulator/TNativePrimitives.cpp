@@ -2086,7 +2086,7 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 				case 0x35:
 					if (mLog)
 					{
-						mLog->LogLine( "TSerialChipEinstein::PutByte" );
+						mLog->FLogLine( "TSerialChipEinstein::PutByte %02x", mProcessor->GetRegister( 1 ) );
 					}
 					port->PutByte( mProcessor->GetRegister( 1 ));
 					break;
@@ -2100,11 +2100,11 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 					break;
 
 				case 0x37:
+					r = port->GetByte();
 					if (mLog)
 					{
-						mLog->LogLine( "TSerialChipEinstein::GetByte" );
+						mLog->FLogLine( "TSerialChipEinstein::GetByte %02x", r );
 					}
-					r = port->GetByte();
 					break;
 
 				case 0x38:
@@ -2132,11 +2132,11 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 					break;
 
 				case 0x3B:
+					r = port->GetSerialStatus();
 					if (mLog)
 					{
-						mLog->LogLine( "TSerialChipEinstein::GetSerialStatus" );
+						mLog->FLogLine( "TSerialChipEinstein::GetSerialStatus %08x", r );
 					}
-					r = port->GetSerialStatus();
 					break;
 
 				case 0x3C:
@@ -2394,7 +2394,7 @@ TNativePrimitives::ExecuteSerialDriverNative( KUInt32 inInstruction )
 		}
 	}
 
-	mProcessor->SetRegister( 0, 0 );
+	mProcessor->SetRegister( 0, r );
 }
 
 // -------------------------------------------------------------------------- //
