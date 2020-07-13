@@ -44,6 +44,24 @@ extern "C" long ClearInterrupt(InterruptObject*);
 
 #define kCMOSerialEinsteinLoc 'eloc'
 
+__attribute__((naked)) void nwt_log(const char *str)
+{
+    asm("stmdb   sp!, {r1, lr}\n"
+        "ldr     lr, id0\n"
+        "mov     r1, r0\n"
+        "mcr     p10, 0, lr, c0, c0\n"
+        "ldmia   sp!, {r1, pc}\n"
+        "id0:\n"
+        ".word      0x11a\n");
+}
+
+void LH(const char *func, int line, int v)
+{
+    char buffer[80];
+    sprintf(buffer, "%s %d %d", func, line, v);
+    nwt_log(buffer);
+}
+
 THMOSerialEinsteinHardware::THMOSerialEinsteinHardware()
 {
 	SetAsOption(kCMOSerialEinsteinLoc);
