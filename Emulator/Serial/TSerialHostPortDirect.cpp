@@ -63,7 +63,6 @@ TSerialHostPortDirect::TSerialHostPortDirect(
 		cfsetspeed(&options, 115200);
 		tcflush(mFile, TCIFLUSH);
 		tcsetattr(mFile, TCSANOW, &options);
-		mLog->FLogLine( "[####] TSerialHostPortDirect: port opened: %p", this );
 		mReadMutex = new TMutex();
 		mReadBuffer = new TCircleBuffer( 8 * 1024 );
 		mIOThread = new TThread( this );
@@ -173,7 +172,6 @@ void TSerialHostPortDirect::Run()
 	fd_set fdSet;
 	while (true)
 	{
-		mLog->LogLine( "[####] TSerialHostPortDirect: Waiting for data..." );
 		FD_ZERO( &fdSet );
 		FD_SET( mFile, &fdSet );
 		if (select( FD_SETSIZE, &fdSet, 0, 0, 0 ) != -1 &&
@@ -181,7 +179,6 @@ void TSerialHostPortDirect::Run()
 		{
 			KUInt8 data;
 			mReadMutex->Lock();
-			mLog->LogLine( "[####] TSerialHostPortDirect: data available" );
 			while (read( mFile, &data, sizeof(data)) == sizeof(data))
 			{
 				mReadBuffer->Produce( &data, sizeof(data));

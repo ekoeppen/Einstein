@@ -56,7 +56,8 @@ class TPlatformManager;
 	IBOutlet NSUserDefaultsController* mUserDefaultsController;
 	IBOutlet TCocoaAppController* mAppController;
 	IBOutlet NSMenuItem* mPreferencesMenuItem;
-	
+	IBOutlet NSTextField* mSerialDevice;
+
 	BOOL	buttonsAreStartAndQuit;
 }
 

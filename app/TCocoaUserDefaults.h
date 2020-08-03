@@ -34,6 +34,7 @@
 
 #define kExtrTCPServerAddress		@"ExtrServerAddress"
 #define kExtrTCPServerPort			@"ExtrServerPort"
+#define kSerialDeviceKey			@"SerialDevice"
 
 #define kMachineKey					@"Machine"
 #define k717006Tag					717006

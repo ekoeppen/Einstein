@@ -92,6 +92,12 @@ TSerialHostPort *TSerialPorts::GetDriverFor(KUInt32 location)
 	return mHostPorts[location];
 }
 
+void TSerialPorts::SetDeviceFor(KUInt32 inLocation, std::string const& inDevice)
+{
+	mHostPortDevice[inLocation] = inDevice;
+}
+
+
 /**
  Initialize all drivers and run them
 
@@ -167,14 +173,16 @@ TSerialPortManager *TSerialPorts::ReplaceDriver(EPortIndex inPort, EDriverID inD
 TSerialHostPort* TSerialPorts::ReplaceDriver(KUInt32 inLocation, EDriverID inDriver)
 {
 #if TARGET_OS_MAC
-	const char* device = "/dev/cu.Repleo-CP2102-0001";
+	const char* device = "/dev/cu.usbmodem411";
 #elif TARGET_OS_LINUX
 	const char* device = "/dev/ttyUSB0";
 #else
 	const char* device = "COM1:"
 #endif
 	TSerialHostPort *port;
-	printf ("[####] Location: %08x driver %d\n", inLocation, inDriver);
+	if (mHostPortDevice.count(inLocation)) {
+		device = mHostPortDevice.at(inLocation).c_str();
+	}
 	switch (inDriver)
 	{
 		case kDirectDriver:

@@ -108,6 +108,9 @@ public:
 	// Add a driver for a dynamically allocated port
 	TSerialHostPort *ReplaceDriver(KUInt32 inLocation, EDriverID inDriverId);
 
+	// Set device for host port
+	void SetDeviceFor(KUInt32 inLocation, std::string const& inDevice);
+	
 	// NewtonScript call to return all driver names
 	static NewtRef NSGetDriverNames(TNewt::RefArg arg);
 
@@ -130,6 +133,7 @@ private:
 	TEmulator 			*mEmulator = nullptr;
 	std::function<void(int)> mPortChangedCallback;
 	std::map<KUInt32, TSerialHostPort*> mHostPorts;
+	std::map<KUInt32, std::string> mHostPortDevice;
 
 };
 

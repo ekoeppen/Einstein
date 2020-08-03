@@ -469,6 +469,8 @@ static TCocoaAppController* gInstance = nil;
 			}
 	    }
 	);
+	NSString* theSerialDevice = [defaults stringForKey: kSerialDeviceKey];
+	mEmulator->SerialPorts.SetDeviceFor('hsr1', std::string([theSerialDevice UTF8String]));
 
 	if ([defaults boolForKey: kEnableListenersKey])
 	{
