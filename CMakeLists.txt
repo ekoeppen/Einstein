@@ -414,8 +414,6 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 		# /usr/local/lib/libfltk.a
 		fltk
 		fltk_images
-		fltk_png
-		fltk_z
 		pthread
 		"-framework AddressBook"
 		"-framework AudioUnit"
@@ -481,8 +479,6 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	target_link_libraries(Einstein
 		fltk
 		fltk_images
-		fltk_png
-		fltk_z
 		pulse # sound
 	)
 
@@ -550,8 +546,6 @@ elseif (WIN32)
 		# this vvv always includes the debug version, even in release mode
 		fltk
 		fltk_images
-		fltk_png
-		fltk_z
 		# alternatively, this loads the correct library but needs additional libs that would be included automatically in the line above
 		#"${FLTK_BASE_LIBRARY_RELEASE}" # FIXME: or it will select the debug version even in release mode!
 		#comctl32

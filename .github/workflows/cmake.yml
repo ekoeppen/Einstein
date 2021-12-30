@@ -1,0 +1,50 @@
+name: CI on Linux
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get dependencies
+      run: sudo apt-get install -y libpulse-dev ninja-build
+    - name: Get sources
+      uses: actions/checkout@v2
+    - name: Get FLTK
+      uses: actions/checkout@v2
+      with:
+        repository: fltk/fltk
+        path: fltk
+    - name: Compile FLTK
+      run: |
+        cd fltk
+        mkdir build
+        cd build
+        cmake -G Ninja ..
+        ninja
+        sudo ninja install
+    - name: Get newt64
+      uses: actions/checkout@v2
+      with:
+        repository: MatthiasWM/NEWT64
+        path: newt64
+    - name: Compile newt64
+      run: |
+        cd newt64
+        mkdir build
+        cd build
+        cmake -G Ninja ..
+        ninja
+        sudo ninja install
+    - name: Configure CMake
+      run: mkdir -p _Build_/Makefiles && cd _Build_/Makefiles && cmake -G Ninja ../..
+    - name: Build
+      run: cd _Build_/Makefiles && ninja
