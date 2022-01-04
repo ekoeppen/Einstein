@@ -42,8 +42,7 @@ TStdOutLog::TStdOutLog( void )
 void
 TStdOutLog::DoLogLine( const char* inLine )
 {
-    (void)inLine;
-	KPrintf( "%s\n", inLine );
+	printf( "%s\n", inLine );
 }
 
 // ======================================================================= //

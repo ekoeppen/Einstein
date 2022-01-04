@@ -231,6 +231,7 @@ Developer's Documentation: Basic Ideas, Basic Features, Detailed Class Reference
 #include "Emulator/TMemory.h"
 #include "Emulator/Log/TLog.h"
 #include "Emulator/Log/TFileLog.h"
+#include "Emulator/Log/TStdOutLog.h"
 #include "Emulator/Log/TBufferLog.h"
 #include "Emulator/Serial/TSerialPorts.h"
 #include "Emulator/Serial/TSerialPortManager.h"
@@ -313,7 +314,7 @@ TFLApp::Run( int argc, char* argv[] )
 
     InitSettings();
 
-#if 1
+#if 0
     TBufferLog *bl = new TBufferLog();
 #   if !NDEBUG
 #       if TARGET_OS_WIN32
@@ -328,7 +329,7 @@ TFLApp::Run( int argc, char* argv[] )
 #   endif
     mLog = bl;
 #else
-    mLog = bl;
+    mLog = new TStdOutLog();
 #endif
 
     int ramSize = mFLSettings->RAMSize;

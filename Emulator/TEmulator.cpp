@@ -78,7 +78,7 @@ TEmulator::TEmulator(
 			KUInt32 inRAMSize /* = 4194304 */ )
 	:
         SerialPorts( this, inLog ),
-		mMemory( inLog, inROMImage, inFlashPath, inRAMSize ),
+		mMemory( NULL, inROMImage, inFlashPath, inRAMSize ),
 		mProcessor( inLog, &mMemory ),
 		mInterruptManager( nil ),
 		mDMAManager( nil ),
@@ -139,8 +139,8 @@ TEmulator::TEmulator(
 					 KUInt32 inRAMSize)
 	:
         SerialPorts( this, inLog ),
-		mMemory( inLog, inROMImageBuffer, inFlashPath, inRAMSize ),
-		mProcessor( inLog, &mMemory ),
+		mMemory( NULL, inROMImageBuffer, inFlashPath, inRAMSize ),
+		mProcessor( NULL, &mMemory ),
 		mInterruptManager( nil ),
 		mDMAManager( nil ),
 		mPlatformManager( nil ),

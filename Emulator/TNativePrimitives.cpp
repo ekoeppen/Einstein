@@ -112,7 +112,7 @@ TNativePrimitives::TNativePrimitives(
 	:
 		mProcessor( nil ),
 		mLog( inLog ),
-		mLogMask( 0b000000000000 ),
+		mLogMask( ENABLE_LOG_SERIAL ),
 		mMemory( inMemory ),
 		mEmulator( nil ),
 		mNetworkManager( nil ),
