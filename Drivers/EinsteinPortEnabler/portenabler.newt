@@ -1,0 +1,11 @@
+{
+    app: '|Port Enabler:40Hz|,
+    text: "Port Enabler",
+    enable: PortEnabler.Enable,
+
+    InstallScript: func (partFrame) begin
+        partFrame:enable();
+        return { removeScript: nil };
+    end,
+};
+

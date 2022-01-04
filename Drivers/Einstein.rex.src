@@ -40,6 +40,7 @@ package		"NSRuntime/Einstein NS Runtime.pkg"
 // NewtTest 1.1i
 package				"packages/NewtTest11i.pkg"
 package				"packages/NTHelp10.PKG"
+package				"EinsteinPortEnabler/portenabler.pkg"
 // Keyboards.
 package				"../Packages/Keyboards/Keyboards.pkg"
 
