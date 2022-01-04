@@ -210,6 +210,36 @@ TMainPlatformDriver::SInterruptHandler( void* inUserData )
 }
 
 // ------------------------------------------------------------------------ //
+// BreakInMonitor( void )
+// ------------------------------------------------------------------------ //
+void
+TMainPlatformDriver::BreakInMonitor( void )
+{
+    asm("stmdb   sp!, {r1, lr}\n"
+        "ldr     lr, id0\n"
+        "mov     r1, r0\n"
+        "mcr     p10, 0, lr, c0, c0\n"
+        "ldmia   sp!, {r1, pc}\n"
+        "id0:\n"
+        ".word      0x116\n");
+}
+
+// ------------------------------------------------------------------------ //
+// Log( const char * )
+// ------------------------------------------------------------------------ //
+void
+TMainPlatformDriver::Log( const char* /*inString*/ )
+{
+    asm("stmdb   sp!, {r1, lr}\n"
+        "ldr     lr, id1\n"
+        "mov     r1, r0\n"
+        "mcr     p10, 0, lr, c0, c0\n"
+        "ldmia   sp!, {r1, pc}\n"
+        "id1:\n"
+        ".word      0x11a\n");
+}
+
+// ------------------------------------------------------------------------ //
 // InterruptHandler( void )
 // ------------------------------------------------------------------------ //
 NewtonErr
