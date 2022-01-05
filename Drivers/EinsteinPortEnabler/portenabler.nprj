@@ -1,9 +1,8 @@
 {
     parts: [
         {
-            main: "portenabler.newt",
+            main: "portenabler-app.newt",
             modules: ["portenabler.ntkc"],
-            type: 'auto
         }
     ],
     name: "Port Enabler:40hz",

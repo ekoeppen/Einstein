@@ -1,0 +1,26 @@
+mainView := {
+    _proto: protoFloatNGo,
+    title: "Port Enabler",
+    appSymbol: '|Port Enabler:40Hz|,
+    viewJustify: vjParentTopV + vjParentLeftH,
+    viewBounds: {left: 32, top: 32, right: 120, bottom: 120},
+    h: PortEnabler.Enable,
+
+    stepChildren: [
+        {
+            _proto: protoTextButton,
+            text: "Enable",
+            viewBounds: {left: 8, top: 8, right: 80, bottom: 24},
+            buttonClickScript: func() begin
+                :h("extr", 2);
+            end,
+        },
+    ]
+};
+
+{
+    app: '|Port Enabler:40Hz|,
+    text: "Port Enabler",
+    theForm: mainView,
+}
+
