@@ -181,9 +181,6 @@ Developer's Documentation: Basic Ideas, Basic Features, Detailed Class Reference
  - UsermodeNetwork thread:
     Parts of the usermode network driver run within a thread.
 
- - TCP Serial Port:
-    All TCP communications runs within a thread
-
  */
 
 #include <K/Defines/KDefinitions.h>
@@ -233,9 +230,6 @@ Developer's Documentation: Basic Ideas, Basic Features, Detailed Class Reference
 #include "Emulator/Log/TFileLog.h"
 #include "Emulator/Log/TStdOutLog.h"
 #include "Emulator/Log/TBufferLog.h"
-#include "Emulator/Serial/TSerialPorts.h"
-#include "Emulator/Serial/TSerialPortManager.h"
-#include "Emulator/Serial/TTcpClientSerialPortManager.h"
 #include "Emulator/PCMCIA/TLinearCard.h"
 
 // Http Client GET
@@ -401,8 +395,6 @@ TFLApp::Run( int argc, char* argv[] )
 //                Fl::awake([](void*){gApp->UserActionInstallEssentials();});
         }
     );
-
-    InitSerialPorts(); // do this after creating the emulator
 
     InitMonitor(theROMImagePath);
     if (mMonitor)
@@ -1139,49 +1131,6 @@ void TFLApp::InitScreen()
     else
         wAppWindow->resizable(nullptr);
     StoreAppWindowSize();
-}
-
-
-void TFLApp::InitSerialPorts()
-{
-    // TODO: add preferences for the current driver, port and server address
-    // Basic initialization of all serial ports
-
-    mEmulator->SerialPorts.Initialize(TSerialPorts::kTcpClientDriver,
-                                      TSerialPorts::kNullDriver,
-                                      TSerialPorts::kNullDriver,
-                                      TSerialPorts::kNullDriver );
-#if 0
-    // TODO: save the serial port setting in a safe place
-    TSerialPortManager *extr = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kExtr);
-    if (extr && extr->GetID()==TSerialPorts::kTcpClientDriver)
-    {
-        TTcpClientSerialPortManager *tcp = (TTcpClientSerialPortManager*)extr;
-        tcp->SetServerAddress([[defaults stringForKey: kExtrTCPServerAddress] UTF8String]);
-        tcp->SetServerPort((int)[defaults integerForKey: kExtrTCPServerPort]);
-    }
-    mEmulator->SerialPorts.PortChangedCallback(
-                                               // THIS IS A LAMBDA FUNCTION. This function is called when an application
-                                               // on the emulated Newton changes the serial port settings
-                                               [self](int serPort)->void
-                                               {
-        if (serPort==TSerialPorts::kExtr) {
-            TSerialPortManager *extr = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kExtr);
-            if (extr && extr->GetID()==TSerialPorts::kTcpClientDriver) {
-                TTcpClientSerialPortManager *tcp = (TTcpClientSerialPortManager*)extr;
-
-                char *tcpServer = tcp->GetServerAddressDup();
-                NSString *nsTcpServer = [NSString stringWithUTF8String:tcpServer];
-                [[mUserDefaultsController defaults] setValue:nsTcpServer forKey:kExtrTCPServerAddress];
-                ::free(tcpServer);
-
-                int tcpPort = tcp->GetServerPort();
-                [[mUserDefaultsController defaults] setInteger:tcpPort forKey:kExtrTCPServerPort];
-            }
-        }
-    }
-                                               );
-#endif
 }
 
 void TFLApp::MountPCCardsKeptInSlot()

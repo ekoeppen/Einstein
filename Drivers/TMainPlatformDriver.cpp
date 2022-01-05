@@ -91,6 +91,7 @@ TMainPlatformDriver::New( void )
     // which causes the boot to hang. Keep the chip at location extr around as
     // it will be used by Einstein's port emulation.
     TUNameServer theServer;
+    (void) theServer.RegisterName( "extr", "TSerialChip", 0, 0 );
     (void) theServer.RegisterName( "infr", "TSerialChip", 0, 0 );
     (void) theServer.RegisterName( "tblt", "TSerialChip", 0, 0 );
     (void) theServer.RegisterName( "mdem", "TSerialChip", 0, 0 );

@@ -175,8 +175,6 @@ private:
     
     void InitNetwork();
 
-    void InitSerialPorts();
-
     void InitMonitor(const char *theROMImagePath);
 
     void MountPCCardsKeptInSlot();

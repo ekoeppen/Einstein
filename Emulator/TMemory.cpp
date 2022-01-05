@@ -42,8 +42,6 @@
 // Einstein
 #include "Emulator/TARMProcessor.h"
 #include "TInterruptManager.h"
-#include "TDMAManager.h"
-#include "Serial/TSerialPortManager.h"
 #include "TEmulator.h"
 #include "Emulator/Platform/TPlatformManager.h"
 #include "ROM/TROMImage.h"
@@ -115,7 +113,6 @@ TMemory::TMemory(
 		mMMU( this ),
 		mBankCtrlRegister( 0 ),
 		mInterruptManager( 0 ),
-		mDMAManager( 0 ),
 		mSerialNumberIx( 64 ),
 		mBPCount( 0 ),
 		mBreakpoints( NULL ),
@@ -145,7 +142,6 @@ TMemory::TMemory(
 		mMMU( this ),
 		mBankCtrlRegister( 0 ),
 		mInterruptManager( 0 ),
-		mDMAManager( 0 ),
 		mSerialNumberIx( 64 ),
 		mBPCount( 0 ),
 		mBreakpoints( NULL ),
@@ -184,7 +180,6 @@ TMemory::SetEmulator( TEmulator* inEmulator )
 	if (inEmulator)
 	{
 		mInterruptManager = inEmulator->GetInterruptManager();
-		mDMAManager = inEmulator->GetDMAManager();
 		mEmulator = inEmulator;
 
 		int socketIx;
@@ -197,7 +192,6 @@ TMemory::SetEmulator( TEmulator* inEmulator )
 		ComputeSerialNumber( inEmulator->GetNewtonID() );
 	} else {
 		mInterruptManager = nil;
-		mDMAManager = nil;
 		mEmulator = nil;
 
 		int socketIx;
@@ -895,22 +889,6 @@ TMemory::ReadP( PAddr inAddress, Boolean& outFault )
 				| thePageCount;
 		} else if (inAddress == TMemoryConsts::kHdWr_08RAMSize) {
 			return 0;
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan1Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan1End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan1Base) >> 13;
-			KUInt32 reg = (inAddress & 0x1C00) >> 10;
-			return mDMAManager->ReadChannel1Register( channel, reg );
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan2Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan2End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan2Base) >> 12;
-			KUInt32 reg = (inAddress & 0x0C00) >> 10;
-			return mDMAManager->ReadChannel2Register( channel, reg );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAAssgmnt) {
-			return mDMAManager->ReadChannelAssignmentRegister();
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAEnableStat) {
-			return mDMAManager->ReadStatusRegister();
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAWordStat) {
-			return mDMAManager->ReadWordStatusRegister();
 		} else if (inAddress == TMemoryConsts::kHdWr_HighSpeedClck) {
 			return TMemoryConsts::kHighSpeedClockVal;
 		} else if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
@@ -1116,22 +1094,6 @@ TMemory::ReadPAligned( PAddr inAddress, Boolean& outFault )
 				| thePageCount;
 		} else if (inAddress == TMemoryConsts::kHdWr_08RAMSize) {
 			return 0;
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan1Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan1End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan1Base) >> 13;
-			KUInt32 reg = (inAddress & 0x1C00) >> 10;
-			return mDMAManager->ReadChannel1Register( channel, reg );
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan2Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan2End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan2Base) >> 12;
-			KUInt32 reg = (inAddress & 0x0C00) >> 10;
-			return mDMAManager->ReadChannel2Register( channel, reg );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAAssgmnt) {
-			return mDMAManager->ReadChannelAssignmentRegister();
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAEnableStat) {
-			return mDMAManager->ReadStatusRegister();
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAWordStat) {
-			return mDMAManager->ReadWordStatusRegister();
 		} else if (inAddress == TMemoryConsts::kHdWr_HighSpeedClck) {
 			return TMemoryConsts::kHighSpeedClockVal;
 		} else if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
@@ -1437,22 +1399,6 @@ TMemory::ReadBP( PAddr inAddress, KUInt8& outByte )
 		}
 		// mEmulator->BreakInMonitor();
 		outByte = 0;
-	} else if (inAddress < TMemoryConsts::kSerialEnd) {
-		outByte = 0;
-		if (inAddress < TMemoryConsts::kInfraredSerialBase)
-		{
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kExtr);
-			if (driver) outByte = driver->ReadRegister(inAddress - TMemoryConsts::kExternalSerialBase );
-		} else if (inAddress < TMemoryConsts::kBuiltInSerialBase) {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kInfr);
-			if (driver) outByte = driver->ReadRegister(inAddress - TMemoryConsts::kInfraredSerialBase );
-		} else if (inAddress < TMemoryConsts::kModemSerialBase) {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kTblt);
-			if (driver) outByte = driver->ReadRegister(inAddress - TMemoryConsts::kBuiltInSerialBase );
-		} else {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kMdem);
-			if (driver) outByte = driver->ReadRegister(inAddress - TMemoryConsts::kModemSerialBase );
-		}
 	} else if (inAddress < TMemoryConsts::kFlashBank2) {
 		if (mLog)
 		{
@@ -1752,23 +1698,7 @@ TMemory::WriteP( PAddr inAddress, KUInt32 inWord )
 //		if (inWord == 0x00000411)
 //			mEmulator->BreakInMonitor();
 	} else if (inAddress < TMemoryConsts::kExternalSerialBase) {
-		if ((inAddress >= TMemoryConsts::kHdWr_DMAChan1Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan1End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan1Base) >> 13;
-			KUInt32 reg = (inAddress & 0x1C00) >> 10;
-			mDMAManager->WriteChannel1Register( channel, reg, inWord );
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan2Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan2End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan2Base) >> 12;
-			KUInt32 reg = (inAddress & 0x0C00) >> 10;
-			mDMAManager->WriteChannel2Register( channel, reg, inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAAssgmnt) {
-			mDMAManager->WriteChannelAssignmentRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAEnableStat) {
-			mDMAManager->WriteEnableRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMADisable) {
-			mDMAManager->WriteDisableRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
+		if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
 			mInterruptManager->SetRealTimeClock(inWord);
 		} else if (inAddress == TMemoryConsts::kHdWr_AlarmReg) {
 			mInterruptManager->SetAlarm(inWord);
@@ -1964,23 +1894,7 @@ TMemory::WritePAligned( PAddr inAddress, KUInt32 inWord )
 //		if (inWord == 0x00000411)
 //			mEmulator->BreakInMonitor();
 	} else if (inAddress < TMemoryConsts::kExternalSerialBase) {
-		if ((inAddress >= TMemoryConsts::kHdWr_DMAChan1Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan1End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan1Base) >> 13;
-			KUInt32 reg = (inAddress & 0x1C00) >> 10;
-			mDMAManager->WriteChannel1Register( channel, reg, inWord );
-		} else if ((inAddress >= TMemoryConsts::kHdWr_DMAChan2Base)
-			&& (inAddress < TMemoryConsts::kHdWr_DMAChan2End)) {
-			KUInt32 channel = (inAddress - TMemoryConsts::kHdWr_DMAChan2Base) >> 12;
-			KUInt32 reg = (inAddress & 0x0C00) >> 10;
-			mDMAManager->WriteChannel2Register( channel, reg, inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAAssgmnt) {
-			mDMAManager->WriteChannelAssignmentRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMAEnableStat) {
-			mDMAManager->WriteEnableRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_DMADisable) {
-			mDMAManager->WriteDisableRegister( inWord );
-		} else if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
+		if (inAddress == TMemoryConsts::kHdWr_CalendarReg) {
 			mInterruptManager->SetRealTimeClock(inWord);
 		} else if (inAddress == TMemoryConsts::kHdWr_AlarmReg) {
 			mInterruptManager->SetAlarm(inWord);
@@ -2270,21 +2184,6 @@ TMemory::WriteBP( PAddr inAddress, KUInt8 inByte )
 				(unsigned int) inByte );
 		}
 		// mEmulator->BreakInMonitor();
-	} else if (inAddress < TMemoryConsts::kSerialEnd) {
-		if (inAddress < TMemoryConsts::kInfraredSerialBase)
-		{
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kExtr);
-			if (driver) driver->WriteRegister( inAddress - TMemoryConsts::kExternalSerialBase, inByte );
-		} else if (inAddress < TMemoryConsts::kBuiltInSerialBase) {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kInfr);
-			if (driver) driver->WriteRegister( inAddress - TMemoryConsts::kInfraredSerialBase, inByte );
-		} else if (inAddress < TMemoryConsts::kModemSerialBase) {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kTblt);
-			if (driver) driver->WriteRegister( inAddress - TMemoryConsts::kBuiltInSerialBase, inByte );
-		} else {
-			TSerialPortManager *driver = mEmulator->SerialPorts.GetDriverFor(TSerialPorts::kMdem);
-			if (driver) driver->WriteRegister( inAddress - TMemoryConsts::kModemSerialBase, inByte );
-		}
 	} else if (inAddress < TMemoryConsts::kFlashBank2) {
 		if (mLog)
 		{

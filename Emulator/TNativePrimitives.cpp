@@ -711,11 +711,6 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 				{
 					mMemory->PowerOnFlash();
 //					mEmulator->BreakInMonitor();
-				}
-                if (theSubsystem == 0x23)
-                {
-                    // the system is up and running, check if we missed any Einstein events
-                    // and they are still pending in the queue
                     mPlatformManager->UnlockQueueBootLock();
                     mEmulator->DoPowerRestored();
                 }

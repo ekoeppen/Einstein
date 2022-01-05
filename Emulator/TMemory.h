@@ -44,7 +44,6 @@ class TROMImage;
 class TLog;
 class TARMProcessor;
 class TInterruptManager;
-class TDMAManager;
 class TEmulator;
 class TPCMCIAController;
 class TStream;
@@ -852,7 +851,6 @@ private:
 	TMMU				mMMU;				///< MMU.
 	KUInt32				mBankCtrlRegister;  ///< Bank control register.
 	TInterruptManager*	mInterruptManager;	///< Interface to the interrupt mgr.
-	TDMAManager*		mDMAManager;		///< Interface to the DMA mgr.
 	TPCMCIAController*	mPCMCIACtrls[kNbSockets];
 											///< PCMCIA controllers.
 	KUInt32				mSerialNumberIx;	///< Index to serial number.
