@@ -85,6 +85,29 @@ void * calloc(size_t count, size_t size)
     return NULL;
 }
 
+__attribute__((naked))
+int puts(const char *s)
+{
+    asm("stmdb   sp!, {r1, lr}\n"
+        "ldr     lr, id1\n"
+        "mov     r1, r0\n"
+        "mcr     p10, 0, lr, c0, c0\n"
+        "ldmia   sp!, {r1, pc}\n"
+        "id1:\n"
+        ".word      0x11a\n");
+}
+
+__attribute__((naked))
+void abort(void)
+{
+    asm("stmdb   sp!, {lr}\n"
+        "ldr     lr, id2\n"
+        "mcr     p10, 0, lr, c0, c0\n"
+        "ldmia   sp!, {pc}\n"
+        "id2:\n"
+        ".word      0x116\n");
+}
+
 };
 
 // ========================================================================== //

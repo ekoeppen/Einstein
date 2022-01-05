@@ -931,6 +931,7 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 				for (char* t = dstText; *t; t++) if (*t == '\r') *t = '\n';
 				gToolkit->PrintStd(dstText);
 				free(dstText);
+			    mProcessor->SetRegister( 0, srcLen );
 				//gToolkit->PrintStd("\n");
             }
 #endif
@@ -938,8 +939,10 @@ TNativePrimitives::ExecutePlatformDriverNative( KUInt32 inInstruction )
 			if (mLog)
 			{
 				mLog->LogLine( theLine );
+			    mProcessor->SetRegister( 0, strlen(theLine) );
 			} else {
 				KPrintf("Log: %s\n", theLine);
+			    mProcessor->SetRegister( 0, strlen(theLine) );
 			}
 		}
 			break;
