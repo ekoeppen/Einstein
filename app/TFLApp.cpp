@@ -1272,22 +1272,11 @@ void TFLApp::StoreAppWindowSize()
  */
 void TFLApp::DeferredOnPowerRestored()
 {
-    static bool beenHere = false;
+    static bool beenHere = true;
 
     // We run this once at boot time. It would be correct to reset this whenever
     // we reboot or load a different configuration.
     if (!beenHere) {
-        if (mFLSettings->mFetchDateAndTime) {
-            std::time_t now = time(nullptr);
-            struct std::tm then_tm = { 0, 0, 0, 1, 0, 4 }; /* Midnight Jan 1 1904 */
-            std::time_t then = std::mktime(&then_tm);
-            std::time_t diff_secs = std::difftime(now, then);
-            
-            KUInt32 minutesSince1904 = diff_secs / 60;
-            char setTimeAndDateScript[256];
-            ::snprintf(setTimeAndDateScript, 256, "SetTime(%u);", minutesSince1904);
-            mPlatformManager->EvalNewtonScript(setTimeAndDateScript);
-        }
         beenHere = true;
     }
 }
