@@ -381,6 +381,15 @@ TCLIApp::Run(int argc, char* argv[])
 		mROMImage = new TFlatROMImageWithREX(
 			theROMImagePath, theREX1Path);
 	}
+	if (mROMImage->GetErrorCode() != TROMImage::kNoError)
+	{
+		(void) ::fprintf(
+			stderr,
+			"Failed to load ROM image %s (error %u)\n",
+			theROMImagePath,
+			(unsigned int) mROMImage->GetErrorCode());
+		::exit(1);
+	}
 	mNetworkManager = new TNullNetworkManager(mLog);
 	mEmulator = new TEmulator(
 		mLog, mROMImage, theFlashPath,
