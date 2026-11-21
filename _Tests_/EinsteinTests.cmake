@@ -37,18 +37,36 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 		${test_sources}
 		${cmake_sources}
 	)
-	target_compile_options( EinsteinTests PUBLIC
-		-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror
-	)
-	target_compile_definitions ( EinsteinTests PRIVATE
-		TARGET_UI_FLTK=1 NO_PORT_AUDIO NO_X11 TARGET_OS_OPENSTEP=1
-		TARGET_OS_MAC=1 NS_BLOCK_ASSERTIONS=1
-	)
 	if ( EINSTEIN_FLTK_FRONTEND )
+		target_compile_options( EinsteinTests PUBLIC
+			-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror
+		)
+		target_compile_definitions ( EinsteinTests PRIVATE
+			TARGET_UI_FLTK=1 NO_PORT_AUDIO NO_X11 TARGET_OS_OPENSTEP=1
+			TARGET_OS_MAC=1 NS_BLOCK_ASSERTIONS=1
+		)
 		target_link_libraries ( EinsteinTests
 			${system_libs}
 			fltk::fltk
 			EinsteinFLGUI
+			pthread
+			"-framework AddressBook"
+			"-framework AudioUnit"
+			"-framework AppKit"
+			"-framework CoreAudio"
+			"-framework Cocoa"
+		)
+	else ()
+		target_compile_options( EinsteinTests PRIVATE
+			$<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror>
+			$<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-declarations>
+		)
+		target_compile_definitions ( EinsteinTests PRIVATE
+			NO_PORT_AUDIO NO_X11 TARGET_OS_OPENSTEP=1
+			TARGET_OS_MAC=1 NS_BLOCK_ASSERTIONS=1
+		)
+		target_link_libraries ( EinsteinTests
+			${system_libs}
 			pthread
 			"-framework AddressBook"
 			"-framework AudioUnit"

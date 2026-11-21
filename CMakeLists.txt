@@ -20,9 +20,10 @@ endif()
 
 # ---- Configuration options
 
-# Default to FLTK front end. The SDL3 option is under development.
+# Default to FLTK front end. The SDL3 and Cocoa options are selectable alternatives.
 option (EINSTEIN_FLTK_FRONTEND "Use FLTK for the frontend" OFF)
 option (EINSTEIN_SDL3_FRONTEND "Use SDL3 for the frontend" OFF)
+option (EINSTEIN_COCOA_FRONTEND "Use native macOS Cocoa for the frontend" OFF)
 
 # fluid is only needed to edit .fl files and for the 'fluid_update' target.
 # The CI builds don't need it. It is never built when cross compiling.
@@ -36,11 +37,21 @@ option (EINSTEIN_BUILD_TESTS "Build the EinsteinTests unit tests" OFF)
 # Requires an ARM cross-compiler (arm-none-eabi-gcc or arm-eabi-gcc) supporting armv4.
 option (EINSTEIN_BUILD_DRIVERS "Build NewtonOS REx drivers as part of Einstein" OFF)
 
-if ( EINSTEIN_FLTK_FRONTEND AND EINSTEIN_SDL3_FRONTEND )
-	message( FATAL_ERROR "Cannot select the FLTK and SDL3 frontend at the same time. Please choose either EINSTEIN_FLTK_FRONTEND or EINSTEIN_SDL3_FRONTEND." )
-elseif ( NOT EINSTEIN_FLTK_FRONTEND AND NOT EINSTEIN_SDL3_FRONTEND )
+set( _einstein_frontend_count 0 )
+foreach( _fe EINSTEIN_FLTK_FRONTEND EINSTEIN_SDL3_FRONTEND EINSTEIN_COCOA_FRONTEND )
+	if( ${_fe} )
+		math( EXPR _einstein_frontend_count "${_einstein_frontend_count} + 1" )
+	endif()
+endforeach()
+if ( _einstein_frontend_count GREATER 1 )
+	message( FATAL_ERROR "Cannot select multiple frontends at the same time. Please choose only one of EINSTEIN_FLTK_FRONTEND, EINSTEIN_SDL3_FRONTEND, or EINSTEIN_COCOA_FRONTEND." )
+elseif ( _einstein_frontend_count EQUAL 0 )
 	message( STATUS "Defaulting to FLTK frontend." )
 	set ( EINSTEIN_FLTK_FRONTEND ON )
+endif()
+
+if ( EINSTEIN_COCOA_FRONTEND AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
+	message( FATAL_ERROR "EINSTEIN_COCOA_FRONTEND is only supported on macOS (Darwin)." )
 endif()
 
 # ---- Configuration for all targets on all platforms
@@ -48,6 +59,13 @@ endif()
 set( CMAKE_CXX_STANDARD 20 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
+
+if ( EINSTEIN_COCOA_FRONTEND )
+	enable_language( OBJCXX )
+	set( CMAKE_OBJCXX_STANDARD 20 )
+	set( CMAKE_OBJCXX_STANDARD_REQUIRED ON )
+	set( CMAKE_OBJCXX_EXTENSIONS OFF )
+endif ()
 
 # ---- Include some additional functionality
 
@@ -333,13 +351,76 @@ if ( EINSTEIN_BUILD_DRIVERS )
 endif ()
 
 if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
-	# additional source code
-	list ( APPEND app_sources
-		# Apple macOS required resources
-		Resources/macOS/Info.plist.in
-		Resources/macOS/Einstein.icns
-		Resources/macOS/Entitlements.plist
-	)
+	if ( EINSTEIN_COCOA_FRONTEND )
+		set( _cocoa_resources
+			Resources/icons/Einstein.icns
+			Resources/icons/button_backlight.png
+			Resources/icons/button_backlight_on.png
+			Resources/icons/button_install.png
+			Resources/icons/button_network.png
+			Resources/icons/button_network_in.png
+			Resources/icons/button_power.png
+			Resources/icons/button_power_on.png
+			Resources/icons/button_prefs.png
+			app/Scripting/Einstein.sdef
+			_Data_/Einstein.rex
+		)
+		set_source_files_properties (
+			${_cocoa_resources}
+			PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+		)
+		list ( APPEND app_sources
+			Resources/macOS/Cocoa-Info.plist.in
+			Resources/macOS/Entitlements.plist
+			${_cocoa_resources}
+		)
+
+		set( _cocoa_generated_nibs )
+		set( _cocoa_xibs
+			Resources/Base.lproj/Einstein.xib
+			Resources/Base.lproj/TCocoaListenerWindow.xib
+		)
+		if ( XCODE )
+			set_source_files_properties (
+				${_cocoa_xibs}
+				PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Base.lproj"
+			)
+			list ( APPEND app_sources ${_cocoa_xibs} )
+		else ()
+			find_program ( IBTOOL_EXECUTABLE ibtool REQUIRED )
+			file ( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/cocoa_nibs/Base.lproj" )
+			foreach ( _xib ${_cocoa_xibs} )
+				get_filename_component ( _xib_name "${_xib}" NAME_WE )
+				set ( _nib_out "${CMAKE_CURRENT_BINARY_DIR}/cocoa_nibs/Base.lproj/${_xib_name}.nib" )
+				add_custom_command (
+					OUTPUT "${_nib_out}"
+					COMMAND "${IBTOOL_EXECUTABLE}"
+						--errors --warnings --notices
+						--output-format human-readable-text
+						--compile "${_nib_out}"
+						"${CMAKE_CURRENT_SOURCE_DIR}/${_xib}"
+					DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_xib}"
+					COMMENT "Compiling ${_xib} to ${_xib_name}.nib"
+					VERBATIM
+				)
+				set_source_files_properties (
+					"${_nib_out}"
+					PROPERTIES
+						GENERATED TRUE
+						MACOSX_PACKAGE_LOCATION "Resources/Base.lproj"
+				)
+				list ( APPEND _cocoa_generated_nibs "${_nib_out}" )
+			endforeach ()
+		endif ()
+	else ()
+		# additional source code
+		list ( APPEND app_sources
+			# Apple macOS required resources
+			Resources/macOS/Info.plist.in
+			Resources/macOS/Einstein.icns
+			Resources/macOS/Entitlements.plist
+		)
+	endif ()
 endif ()
 
 #
@@ -364,17 +445,22 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 
 	# take care of the app icon
 	set( MACOSX_BUNDLE_ICON_FILE "Einstein.icns" )
-    set( MACOSX_BUNDLE_GUI_IDENTIFIER "org.messagepad.einstein" )
-	set_source_files_properties (
-		Resources/macOS/${MACOSX_BUNDLE_ICON_FILE}
-		PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-	)
+	if ( EINSTEIN_COCOA_FRONTEND )
+		set( MACOSX_BUNDLE_GUI_IDENTIFIER "com.kallisys.einstein" )
+	else ()
+		set( MACOSX_BUNDLE_GUI_IDENTIFIER "org.messagepad.einstein" )
+		set_source_files_properties (
+			Resources/macOS/${MACOSX_BUNDLE_ICON_FILE}
+			PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+		)
+	endif ()
 
 	# create the applications
 	add_executable ( Einstein MACOSX_BUNDLE
 		${common_sources}
 		${app_sources}
 		${cmake_sources}
+		${_cocoa_generated_nibs}
 	)
 	if ( EINSTEIN_FLTK_FRONTEND )
 		add_library ( EinsteinFLGUI STATIC
@@ -383,9 +469,20 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 	endif()
 
 	# how to compile and link
-	target_compile_options( Einstein PUBLIC
-		-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror
-	)
+	if ( EINSTEIN_COCOA_FRONTEND )
+		target_compile_options( Einstein PRIVATE
+			$<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror>
+			$<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-declarations>
+		)
+		target_compile_definitions ( Einstein PRIVATE
+			NO_PORT_AUDIO NO_X11 TARGET_OS_OPENSTEP=1
+			TARGET_OS_MAC=1 NS_BLOCK_ASSERTIONS=1
+		)
+	else ()
+		target_compile_options( Einstein PUBLIC
+			-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror
+		)
+	endif ()
 	if ( EINSTEIN_FLTK_FRONTEND )
 		target_compile_options( EinsteinFLGUI PUBLIC
 			-Wall -Wextra -Wpedantic -Wno-missing-field-initializers -Werror
@@ -418,6 +515,11 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 		"-framework CoreAudio"
 		"-framework Cocoa"
 	)
+	if ( EINSTEIN_COCOA_FRONTEND )
+		target_link_libraries ( Einstein
+			"-framework Carbon"
+		)
+	endif ()
 	if ( EINSTEIN_FLTK_FRONTEND )
 		target_link_libraries ( Einstein
 			EinsteinFLGUI
@@ -434,9 +536,21 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 		)
   	endif ()
 
-	set_target_properties ( Einstein PROPERTIES
-		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Resources/macOS/Info.plist.in"
-	)
+	if ( EINSTEIN_COCOA_FRONTEND )
+		set_target_properties ( Einstein PROPERTIES
+			MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Resources/macOS/Cocoa-Info.plist.in"
+			MACOSX_BUNDLE_BUNDLE_NAME "Einstein"
+			MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+			MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+		)
+	else ()
+		set_target_properties ( Einstein PROPERTIES
+			MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Resources/macOS/Info.plist.in"
+			MACOSX_BUNDLE_BUNDLE_NAME "Einstein"
+			MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+			MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+		)
+	endif ()
 	set_target_properties ( Einstein PROPERTIES
 		CPACK_BUNDLE_APPLE_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/macOS/Entitlements.plist"
 	)

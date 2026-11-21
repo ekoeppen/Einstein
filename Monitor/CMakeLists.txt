@@ -26,3 +26,14 @@ list ( APPEND app_sources
 
 endif ()
 
+if ( EINSTEIN_COCOA_FRONTEND )
+
+list ( APPEND app_sources
+	Monitor/TMacMonitor.h
+	Monitor/TMacMonitor.mm
+	Monitor/TMacMonitorView.h
+	Monitor/TMacMonitorView.mm
+)
+
+endif ()
+

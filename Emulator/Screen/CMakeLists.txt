@@ -30,3 +30,21 @@ list ( APPEND app_sources
 )
 
 endif ()
+
+if ( EINSTEIN_COCOA_FRONTEND )
+
+list ( APPEND app_sources
+	Emulator/Screen/CocoaEmulatorApp.h
+	Emulator/Screen/CocoaScreenProxy.h
+	Emulator/Screen/CocoaScreenProxy.mm
+	Emulator/Screen/TCocoaPowerButtonNSView.h
+	Emulator/Screen/TCocoaPowerButtonNSView.mm
+	Emulator/Screen/TCocoaScreenGlue.h
+	Emulator/Screen/TCocoaScreenGlue.mm
+	Emulator/Screen/TCocoaScreenManager.h
+	Emulator/Screen/TCocoaScreenManager.mm
+	Emulator/Screen/TCocoaScreenView.h
+	Emulator/Screen/TCocoaScreenView.mm
+)
+
+endif ()

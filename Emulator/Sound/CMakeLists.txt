@@ -15,7 +15,7 @@ list ( APPEND common_sources
 	Emulator/Sound/TSoundManager.h
 )
 
-if ( EINSTEIN_FLTK_FRONTEND )
+if ( EINSTEIN_FLTK_FRONTEND OR EINSTEIN_COCOA_FRONTEND )
 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 		list (APPEND app_sources
 			Emulator/Sound/TCoreAudioSoundManager.cpp
